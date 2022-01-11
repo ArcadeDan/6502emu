@@ -15,6 +15,10 @@ namespace cpu{
                 Data[i] = 0;
             }
         }
+        //read byte
+        Byte operator[](u32 Address) const {
+            return Data[Address];
+        }
     };
     //6502
     struct CPU{
@@ -44,6 +48,17 @@ namespace cpu{
             = I = D = B = V = N = 0;
             memory.INIT();
         }
-        
+        //byte
+        Byte FETCH(u32 &cycles, cpu::MEM &memory ){
+            Byte Data = memory[PC];
+            PC++;
+            cycles--;
+            return Data;
+        }
+        void EXECUTE(u32 cycles, cpu::MEM &memory ){
+            while (cycles > 0) {
+                Byte instruc = FETCH(cycles, memory);
+            }
+        }
     };
 }

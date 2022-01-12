@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 #include <cstdint>
 using Byte = uint8_t;
 using Word = uint16_t;
@@ -19,25 +19,33 @@ namespace cpu{
         Byte operator[](u32 Address) const {
             return Data[Address];
         }
+        Byte &operator[](u32 Address){
+            return Data[Address];
+        }
     };
     //6502
     struct CPU{
     // registers
-    Byte A;  //accumulator
-    Byte X;  //index 
-    Byte Y;  //index
-    Byte Status;
-    Word SP; // stack pointer
-    Word PC; //program counter
+        Byte A;  //accumulator
+        Byte X;  //index 
+        Byte Y;  //index
+        Byte Status;
+        Word SP; // stack pointer
+        Word PC; //program counter
 
-    Byte C : 1; // CARRY status 
-    Byte Z : 1; // ZERO  status 
-    Byte I : 1; // INTERRUPT status 
-    Byte D : 1; // Decimal status 
-    Byte B : 1; // BREAK status 
+        Byte C : 1; // CARRY status 
+        Byte Z : 1; // ZERO  status 
+        Byte I : 1; // INTERRUPT status 
+        Byte D : 1; // Decimal status 
+        Byte B : 1; // BREAK status 
 
-    Byte V : 1; // OVERFLOW status 
-    Byte N : 1; // NEGATIVE status 
+        Byte V : 1; // OVERFLOW status 
+        Byte N : 1; // NEGATIVE status 
+
+        /*OP CODES */
+
+        static constexpr Byte
+            OP_LDA = 0xA9;
 
         void RESET( cpu::MEM &memory){
             PC = 0xFFFC;
@@ -57,7 +65,19 @@ namespace cpu{
         }
         void EXECUTE(u32 cycles, cpu::MEM &memory ){
             while (cycles > 0) {
-                Byte instruc = FETCH(cycles, memory);
+                Byte instruction = FETCH(cycles, memory);
+                switch(instruction){
+                    default:
+                        std::cout << "Instruction not handled " <<
+                         instruction << " \n";
+                        break;
+                    case OP_LDA:
+                        Byte Val = FETCH(cycles, memory);
+                        A = Val;
+                        Z = (A == 0);
+                        N = (A & 0b10000000) > 0;
+                        break;
+                }
             }
         }
     };

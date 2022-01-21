@@ -76,7 +76,7 @@ namespace cpu{
         static constexpr Byte OP_BIT_A = 0x2C; // 3 length, 4 cycles
 
         /* BRK - break */
-        static constexpr Byte OP_BRK = 0x00; // 1 length, 7 cycles;
+        static constexpr Byte OP_BRK = 0x00; // 1 length, 7 cycles
 
         /* CMP - Compare accumulator */ // FLAGS : N Z C
         static constexpr Byte OP_CMP = 0xC9; // 2 length, 2 cycles
@@ -84,22 +84,57 @@ namespace cpu{
         static constexpr Byte OP_CMP_ZPX = 0xD5;// 2 length, 4 cycles
         static constexpr Byte OP_CMP_A = 0xCD; // 3 length,  4 cycles
         static constexpr Byte OP_CMP_AX = 0xDD; // 3 length, 4+ cycles
-        static constexpr Byte OP_CMP_AY = 0xD9; // 3 length, 4+ cycles;
-        static constexpr Byte OP_CMP_IX = 0xC1; // 2 length, 6 cycles;
-        static constexpr Byte OP_CMP_IY = 0xD1; // 2 length, 5+ cycles;
+        static constexpr Byte OP_CMP_AY = 0xD9; // 3 length, 4+ cycles
+        static constexpr Byte OP_CMP_IX = 0xC1; // 2 length, 6 cycles
+        static constexpr Byte OP_CMP_IY = 0xD1; // 2 length, 5+ cycles
 
         /* CPY - Compare Y register */ // FLAGS : N Z C
-        static constexpr Byte OP_CPY = 0xC0; // 2 length, 2 cycles;
-        static constexpr Byte OP_CPY_ZP = 0xC4; // 2 length, 3 cycles;
-        static constexpr Byte OP_CPY_A = 0xCC; // 3 length, 4 cycles;
+        static constexpr Byte OP_CPY = 0xC0; // 2 length, 2 cycles
+        static constexpr Byte OP_CPY_ZP = 0xC4; // 2 length, 3 cycles
+        static constexpr Byte OP_CPY_A = 0xCC; // 3 length, 4 cycles
 
         /* CPX - Compare X register */ // FLAGS : N Z C
-        static constexpr Byte OP_CPX = 0xE0; // 2 length, 2 cycles;
-        static constexpr Byte OP_CPX_ZP = 0xE4; // 2 length, 3 cycles;
-        static constexpr Byte OP_CPX_A = 0xEC; // 3 length, 4 cycles;
+        static constexpr Byte OP_CPX = 0xE0; // 2 length, 2 cycles
+        static constexpr Byte OP_CPX_ZP = 0xE4; // 2 length, 3 cycles
+        static constexpr Byte OP_CPX_A = 0xEC; // 3 length, 4 cycles
         
         /* DEC - Decrement memory */ // FLAGS : N Z
         static constexpr Byte OP_DEC_ZP = 0xC6; // 2 length, 5 cycles
+        static constexpr Byte OP_DEC_ZPX = 0xD6;// 2 length, 6 cycles
+        static constexpr Byte OP_DEC_A = 0xCE;  // 3 length, 6 cycles
+        static constexpr Byte OP_DEC_AX = 0xDE; // 3 length, 7 cycles
+
+        /* EOR - bitwise exclusive OR */ // FLAGS : N Z
+        static constexpr Byte OP_EOR = 0x49;   // 2 length, 2 cycles
+        static constexpr Byte OP_EOR_ZP = 0x45; // 2 length, 3 cycles
+        static constexpr Byte OP_EOR_ZPX = 0x55; // 2 length, 4 cycles
+        static constexpr Byte OP_EOR_A = 0x4D;   // 3 length, 4 cycles
+        static constexpr Byte OP_EOR_AX = 0x5D; // 3 length, 4+ cycles
+        static constexpr Byte OP_EOR_AY = 0x59; // 3 length, 4+ cycles
+        static constexpr Byte OP_EOR_IX = 0x41; // 2 length, 6 cycles
+        static constexpr Byte OP_EOR_IY = 0x51; // 2 length, 5+ cycles
+
+        /* Flag (Processor Status) instructions */ // FLAGS : Affects as noted, All have 1 length and two cycles
+        static constexpr Byte OP_CLC = 0x18; // clear carry   
+        static constexpr Byte OP_SEC = 0x38; // set carry
+        static constexpr Byte OP_CLI = 0x58; // clear interrupt
+        static constexpr Byte OP_SEI = 0x78; // set interrupt
+        static constexpr Byte OP_CLV = 0xB8; // clear overflow
+        static constexpr Byte OP_CLD = 0xD8; // clear decimal
+        static constexpr Byte OP_SED = 0xF8; // set decimal
+
+        /* INC (Increment memory) */    // FLAGS : N Z
+        static constexpr Byte OP_INC_ZP = 0xE6; // 2 length, 5 cycles
+        static constexpr Byte OP_INC_ZPX = 0xF6;// 2 length, 6 cycles
+        static constexpr Byte OP_INC_A = 0xEE;  // 3 length, 6 cycles
+        static constexpr Byte OP_INC_AX = 0xFE; // 3 length, 7 cycles
+
+        /* JMP - jump */    // FLAGS : None
+        static constexpr Byte OP_JMP_A = 0x4C;  // 3 length, 3 cycles
+        static constexpr Byte OP_JMP_I = 0x6C; // 3 length, 5 cycles
+
+        /* JSR - jump to subroutine */
+        static constexpr Byte OP_JSR_A = 0x20; // 3 length, 6 cycles
 
         /* LDA - load accumulator*/     // FLAGS : N Z
         static constexpr Byte OP_LDA = 0xA9;    // 2 length, 2 cycles
@@ -124,6 +159,78 @@ namespace cpu{
         static constexpr Byte OP_LDY_ZPX = 0xB4;// 2 length, 4 cycles
         static constexpr Byte OP_LDY_A = 0xAC;  // 3 length, 4 cycles
         static constexpr Byte OP_LDY_AX = 0xBC; // 3 length, 4+ cycles
+
+        /* LSR (logical shift right) */
+
+        static constexpr Byte OP_LSR_ACCUMULATOR = 0x4A; // 1 length, 2 cycles
+        static constexpr Byte OP_LSR_ZP = 0x46; // 1 length, 2 cycles
+        static constexpr Byte OP_LSR_ZPX = 0x56; // 2 length, 6 cycles
+        static constexpr Byte OP_LSR_ZPX = 0x56;
+
+        /* NOP - No Operation */
+
+        static constexpr Byte OP_NOP = 0xEA;    // 1 length, 2 cycles
+        
+        /* ORA - Bitwise OR with Accumulator */ // FLAGS : N Z
+        static constexpr Byte ORA = 0x09; // 2 length, 2 cycles
+        static constexpr Byte ORA_ZP = 0x05; // 2 length, 3 cycles
+        static constexpr Byte ORA_ZPX = 0x15; // 2 length, 4 cycles
+        static constexpr Byte ORA_A = 0x0D; // 3 length, 4 cycles
+        static constexpr Byte ORA_AX = 0x1D; // 3 length, 4+ cycles
+        static constexpr Byte ORA_AY = 0x19; // 3 length, 4+ cycles
+        static constexpr Byte ORA_IX = 0x01; // 2 length, 6 cycles
+        static constexpr Byte ORA_IY = 0x11; // 2 length, 5+ cycles
+
+        /* Register Instructions */ // FLAGS : N Z     |  1 length, 2 cycles
+        static constexpr Byte TAX = 0xAA; // ( Transfer A to X )
+        static constexpr Byte TXA = 0x8A; // ( Transfer X to A )
+        static constexpr Byte DEX = 0xCA; // ( DEcrement X )
+        static constexpr Byte INX = 0xE8; // ( INcrement X )
+        static constexpr Byte TAY = 0xA8; // ( Transfer A to Y )
+        static constexpr Byte TYA = 0x98; // ( Transfer Y to A )
+        static constexpr Byte DEY = 0x88; // ( DEcrement Y )
+        static constexpr Byte INY = 0xC8; // ( INcrement Y )
+
+        /* ROL - Rotate Left */ // FLAGS : N Z C
+        static constexpr Byte OP_ROL_ACCUMULATOR = 0x2A; // 1 length, 2 cycles
+        static constexpr Byte OP_ROL_ZP = 0x26; // 2 length , 5 cycles
+        static constexpr Byte OP_ROL_ZPX = 0x36; // 2 length, 6 cycles 
+        static constexpr Byte OP_ROL_A = 0x2E; // 3 length, 6 cycles
+        static constexpr Byte OP_ROL_AX = 0x3E; //3 length, 7 cycles
+
+        /* ROR - Rotate Right */ // FLAGS : N Z C
+        static constexpr Byte OP_ROR_ACCUMULATOR = 0x6A; // 1 length, 2 cycles
+        static constexpr Byte OP_ROR_ZP = 0x66; // 2 length , 5 cycles
+        static constexpr Byte OP_ROR_ZPX = 0x76; // 2 length, 6 cycles 
+        static constexpr Byte OP_ROR_A = 0x6E; // 3 length, 6 cycles
+        static constexpr Byte OP_ROR_AX = 0x7E; //3 length, 7 cycles
+        
+        /* RTI - Return from Interrupt */ // FLAGS : ALL
+        static constexpr Byte OP_RTI = 0x40; // 1 length, 6 cycles
+
+        /* RTS - Return from Subroutine */  // FLAGS : NONE
+        static constexpr Byte OP_RTS = 0x60; // length 1, 6 cycles
+
+        /* SBC - Subtract with Carry */ // FLAGS : N V Z C
+        static constexpr Byte OP_SBC = 0xE9; // 2 length, 2 cycles
+        static constexpr Byte OP_SBC_ZP = 0xE5; // 2 length, 2 cycles
+        static constexpr Byte OP_SBC_ZPX = 0xF5; // 2 length, 4 cycles
+        static constexpr Byte OP_SBC_A = 0xED; //  3 length, 4 cycles
+        static constexpr Byte OP_SBC_AX = 0xFD; // 3 length, 4+ cycles
+        static constexpr Byte OP_SBC_AY = 0xF9; // 3 length, 4+ cycles
+        static constexpr Byte OP_SBC_IX = 0xE1; // 2 length, 6 cycles
+        static constexpr Byte OP_SBC_IY = 0xF1; // 2 length, 5+ cycles
+
+        /* STA - Store Accumulator*/    // FLAGS : NONE
+        static constexpr Byte OP_STA_ZP = 0x85; // 2 length, 3 cycles
+        static constexpr Byte OP_STA_ZPY = 0x95; // 2 length, 3 cycles
+        static constexpr Byte OP_STA_A = 0x8D; // 3 length, 4 cycles
+        static constexpr Byte OP_STA_AX = 0x9D; // 3 length, 5 cycles
+        static constexpr Byte OP_STA_AY = 0x99; // 3 length, 5 cycles
+        static constexpr Byte OP_STA_IX = 0x81; // 2 length, 6 cycles
+        static constexpr Byte OP_STA_IY = 0x91; // 2 length, 6 cycles
+
+        /* Stack Instructions */
 
 
         void RESET( cpu::MEM &memory){

@@ -2,11 +2,16 @@
 #include <iostream>
 #include <cstdint>
 
-using Byte = uint8_t;
-using Word = uint16_t;
-using u32 = uint32_t;
 
-namespace cpu{
+
+namespace e6502{
+    using Byte = uint8_t;
+    using Word = uint16_t;
+    using u32 = uint32_t;
+
+
+
+
     struct MEM{
         static constexpr u32 MAX_MEM = 1024 * 64;
         Byte Data[MAX_MEM];
@@ -17,22 +22,19 @@ namespace cpu{
             }
         }
         //read byte
-        Byte operator[](u32 Address) const {
+        inline Byte operator[](u32 Address) const {
             return Data[Address];
         }
-        Byte &operator[](u32 Address){
+        inline Byte &operator[](u32 Address){
             return Data[Address];
         }
     };
-    //6502
-    struct CPU{
-    // registers
-        Byte A;  //accumulator
-        Byte X;  //index 
-        Byte Y;  //index
-        Byte Status;
-        Word SP; // stack pointer
-        Word PC; //program counter
+
+    struct ProcessorStatus{
+
+
+        Byte V : 1; // OVERFLOW status 
+        Byte N : 1; // NEGATIVE status 
 
         Byte C : 1; // CARRY status 
         Byte Z : 1; // ZERO  status 
@@ -40,8 +42,23 @@ namespace cpu{
         Byte D : 1; // Decimal status 
         Byte B : 1; // BREAK status 
 
-        Byte V : 1; // OVERFLOW status 
-        Byte N : 1; // NEGATIVE status 
+    };
+
+
+    //6502
+    struct CPU{
+    
+        Byte A;     //accumulator
+        Byte X;     //index 
+        Byte Y;     //index
+        
+        Word SP;    // stack pointer
+        Word PC;    //program counter
+
+        union {
+            Byte Status;
+            ProcessorStatus Flag;
+        };
 
     /*OP CODES */      // http://www.6502.org/tutorials/6502opcodes.html
         
@@ -252,35 +269,54 @@ namespace cpu{
 
 
 
-        void RESET( cpu::MEM &memory){
-            PC = 0xFFFC;
-            D = 0;
-            SP = 0x00FF;
+        inline void RESET( e6502::MEM &memory){
+            this->PC = 0xFFFC;
+            this->Flag.D = 0;
+            this->SP = 0x0FF;
 
-            A = X = Y = C = Z
-            = I = D = B = V = N = 0;
+            this->A = 0;
+            this->X = 0;
+            this->Y = 0;
+            
+            this->Flag.C = 0;
+            this->Flag.Z = 0;
+            this->Flag.I = 0;
+            this->Flag.D = 0; 
+            this->Flag.B = 0;
+            this->Flag.V = 0;
+            this->Flag.N = 0;
+
             memory.INIT();
         }
         //byte
-        Byte FETCH(u32 &cycles, cpu::MEM &memory ){
+        inline Byte FETCH(u32 &cycles, e6502::MEM &memory ){
             Byte Data = memory[PC];
             PC++;
             cycles--;
             return Data;
         }
-        void EXECUTE(u32 cycles, cpu::MEM &memory ){
+
+        inline void READ(u32 &cycles, e6502::MEM &memory){
+            Byte Data = memory[PC];
+            //PC++;
+            cycles--;
+            return;
+        }
+
+
+        inline void EXECUTE(u32 cycles, e6502::MEM &memory ){
             while (cycles > 0) {
                 Byte instruction = FETCH(cycles, memory);
                 switch(instruction){
                     default:
                         std::cout << "Instruction not handled " <<
-                         instruction << " \n";
+                        instruction << " \n";
                         break;
                     case OP_LDA:
                         Byte Val = FETCH(cycles, memory);
                         A = Val;
-                        Z = (A == 0);
-                        N = (A & 0b10000000) > 0;
+                        this->Flag.Z = (A == 0);
+                        this->Flag.N = (A & 0b10000000) > 0;
                         break;
                 }
             }

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cstdint>
+
 using Byte = uint8_t;
 using Word = uint16_t;
 using u32 = uint32_t;
@@ -230,7 +231,24 @@ namespace cpu{
         static constexpr Byte OP_STA_IX = 0x81; // 2 length, 6 cycles
         static constexpr Byte OP_STA_IY = 0x91; // 2 length, 6 cycles
 
-        /* Stack Instructions */
+        /* Stack Instructions */    //  FLAGS : N/A     // 1 length
+        static constexpr Byte OP_TXS = 0x9A; // (Transfer X to to stack ptr) // 2 cycles
+        static constexpr Byte OP_TSX = 0xBA; // (Transfer stack ptr to x) // 2 cycles
+        static constexpr Byte OP_PHA = 0x48; // (push accumulator) // 3 cycles
+        static constexpr Byte OP_PLA = 0x68; // (pull accumulator status) // 4  cycles
+        static constexpr Byte OP_PHP = 0x08; // (PusH processor status) // 3 cycles
+        static constexpr Byte OP_PLP = 0x28; // (pull processtor status) // 4 cycles
+
+        /* STX - Store X register */    // FLAGS : NONE
+        static constexpr Byte OP_STX_ZP = 0x86; // 2 length, 3 cycles
+        static constexpr Byte OP_STX_ZPY = 0x96;// 2 length, 4 cycles
+        static constexpr Byte OP_STX_A = 0x8E; // 3 length, 4 cycles
+
+        /* STY - Store Y register */    // FLAGS : NONE
+        static constexpr Byte OP_STY_ZP = 0x84; // 2 length, 3 cycles
+        static constexpr Byte OP_STY_ZPX = 0x94;// 2 length, 4 cycles
+        static constexpr Byte OP_STY_A = 0x8C; // 3 length, 4 cycles
+
 
 
         void RESET( cpu::MEM &memory){

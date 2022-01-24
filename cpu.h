@@ -166,7 +166,8 @@ namespace cpu{
         static constexpr Byte OP_LSR_ACCUMULATOR = 0x4A; // 1 length, 2 cycles
         static constexpr Byte OP_LSR_ZP = 0x46; // 1 length, 2 cycles
         static constexpr Byte OP_LSR_ZPX = 0x56; // 2 length, 6 cycles
-        static constexpr Byte OP_LSR_ZPX = 0x56;
+        static constexpr Byte OP_LSR_A = 0x4E; // 3 length, 6 cycles
+        static constexpr Byte OP_LSR_AX = 0x5E; // 3 length, 7 cycles
 
         /* NOP - No Operation */
 

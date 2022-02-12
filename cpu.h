@@ -1,14 +1,14 @@
 #pragma once
 #include <iostream>
 #include <cstdint>
-
+#include <array>
 
 
 namespace e6502{
     using Byte = uint8_t;
     using Word = uint16_t;
     using u32 = uint32_t;
-
+    using fnPtr = void(*)(); 
     /*OP CODES */      // http://www.6502.org/tutorials/6502opcodes.html
         
         /* ADC - Add with Carry */     // FLAGS : N V Z C
@@ -217,6 +217,15 @@ namespace e6502{
         static constexpr Byte OP_STY_A = 0x8C; // 3 length, 4 cycles
 
 
+    struct InstrucTable{
+        static const std::array<fnPtr, 0xFF> Table;
+        inline void operator[](u32 OP){
+            Table[OP];
+            return;
+        }
+    };
+
+
 
     struct MEM{
         static constexpr u32 MAX_MEM = 1024 * 64;
@@ -287,6 +296,7 @@ namespace e6502{
             this->Flag.N = 0;
 
             memory.INIT();
+            return;
         }
         //byte
         inline Byte FETCH(u32 &cycles, e6502::MEM &memory ){

@@ -2,17 +2,22 @@
 #include <iostream>
 #include <cstdint>
 #include <array>
+#include <vector>
 
 
 namespace e6502{
     using Byte = uint8_t;
     using Word = uint16_t;
     using u32 = uint32_t;
-    using fnPtr = void(*)(); 
+    using fnPtr = void(*)();
+
+    
+
     /*OP CODES */      // http://www.6502.org/tutorials/6502opcodes.html
         
         /* ADC - Add with Carry */     // FLAGS : N V Z C
         static constexpr Byte OP_ADC = 0x69;    // 2 length, 2 cycles
+        
         static constexpr Byte OP_ADC_ZP = 0x65; // 2 length, 2 cycles
         static constexpr Byte OP_ADC_ZPX = 0x75;// 2 length, 2 cycles
         static constexpr Byte OP_ADC_A = 0x6D;  // 3 length, 4 cycles
@@ -218,6 +223,44 @@ namespace e6502{
 
 
     struct InstrucTable{
+        static std::vector<Byte> OP_ARRAY;
+        /*
+        InstrucTable() {
+            OP_ARRAY.push_back(OP_ADC);
+            OP_ARRAY.push_back(OP_ADC_A);
+            OP_ARRAY.push_back(OP_ADC_AX);
+            OP_ARRAY.push_back(OP_ADC_AY);
+            OP_ARRAY.push_back(OP_ADC_IX);
+            OP_ARRAY.push_back(OP_ADC_IX);
+            OP_ARRAY.push_back(OP_ADC_IY);
+
+            OP_ARRAY.push_back(OP_AND);
+            OP_ARRAY.push_back(OP_AND_ZP);
+            OP_ARRAY.push_back(OP_AND_ZPX);
+            OP_ARRAY.push_back(OP_AND_A);
+            OP_ARRAY.push_back(OP_AND_AX);
+            OP_ARRAY.push_back(OP_AND_AY);
+            OP_ARRAY.push_back(OP_AND_IX);
+            OP_ARRAY.push_back(OP_AND_IY);
+
+            OP_ARRAY.push_back(OP_ASL_ACCUMULATOR);
+            OP_ARRAY.push_back(OP_ASL_ZP);
+            OP_ARRAY.push_back(OP_ASL_ZPX);
+            OP_ARRAY.push_back(OP_ASL_A);
+            OP_ARRAY.push_back(OP_ASL_AX);
+            
+            OP_ARRAY.push_back(OP_BIT_ZP);
+            OP_ARRAY.push_back(OP_BIT_A);
+
+            OP_ARRAY.push_back(OP_BRK);
+
+            OP_ARRAY.push_back(OP_CMP);
+            OP_ARRAY.push_back(OP_CMP_ZP);
+            OP_ARRAY.push_back(OP_CMP_ZPX);
+            OP_ARRAY.push_back(OP_CMP_A);
+            OP_ARRAY.push_back(OP_CMP_Z);
+        }
+        */
         static const std::array<fnPtr, 0xFF> Table;
         inline void operator[](u32 OP){
             Table[OP];
@@ -259,6 +302,7 @@ namespace e6502{
 
     };
 
+    
 
     //6502
     struct CPU{

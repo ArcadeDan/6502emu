@@ -43,7 +43,9 @@ namespace e6502{
 
     //6502
     struct CPU{
-    
+        
+        InstructionTable table;
+
         Byte A;     //accumulator
         Byte X;     //index 
         Byte Y;     //index
@@ -51,13 +53,18 @@ namespace e6502{
         Word SP;    // stack pointer
         Word PC;    //program counter
 
+        uintmax_t InitCycles = UINTMAX_MAX;
+        uintmax_t PostCycles = 0;
+
+        void operator++(){
+            PostCycles++;
+            InitCycles--;
+        }
+
         union {
             Byte Status;
             ProcessorStatus Flag;
         };
-
-    
-
 
         inline void RESET( e6502::MEM &memory){
             this->PC = 0xFFFC;
@@ -80,38 +87,26 @@ namespace e6502{
             return;
         }
         //byte
-        inline Byte FETCH(u32 &cycles, e6502::MEM &memory ){
+        inline Byte FETCH( e6502::MEM &memory ){
             Byte Data = memory[PC];
             PC++;
-            cycles--;
+            this->operator++();
             return Data;
         }
 
-        inline void READ(u32 &cycles, e6502::MEM &memory){
+        inline void READ( e6502::MEM &memory ){
             Byte Data = memory[PC];
             //PC++;
-            cycles--;
+            this->operator++();
             return;
         }
 
 
-        inline void EXECUTE(u32 cycles, e6502::MEM &memory ){
-            while (cycles > 0) {
-                Byte instruction = FETCH(cycles, memory);
-                /*
-                switch(instruction){
-                    default:
-                        std::cout << "Instruction not handled " <<
-                        instruction << " \n";
-                        break;
-                    case OP_LDA:
-                        Byte Val = FETCH(cycles, memory);
-                        A = Val;
-                        this->Flag.Z = (A == 0);
-                        this->Flag.N = (A & 0b10000000) > 0;
-                        break;
-                }
-                */
+        inline void EXECUTE( e6502::MEM &memory ){
+            while (InitCycles > 0) {
+                Byte instruction = FETCH( memory );
+                table[instruction]();
+    
             }
         }
     };

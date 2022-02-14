@@ -8,6 +8,6 @@ int main (int argc, char* argv[]){
     cpu6502.RESET( memory );
     memory[0xFFFC] = e6502::OP_LDA;
     memory[0xFFFD] = 0x32;
-    cpu6502.EXECUTE(2, memory);
+    cpu6502.EXECUTE( memory );
     return 0;
 }

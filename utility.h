@@ -3,7 +3,10 @@
 #include <array>
 #include <vector>
 
-namespace e6502{
+#include "cpu.h"
+
+
+namespace e6502 {
     using Byte = uint8_t;
     using Word = uint16_t;
     using u32 = uint32_t;
@@ -217,49 +220,34 @@ namespace e6502{
         static constexpr Byte OP_STY_ZPX = 0x94;// 2 length, 4 cycles
         static constexpr Byte OP_STY_A = 0x8C; // 3 length, 4 cycles
 
-        struct InstructionTable{
-        static std::vector<Byte> OP_ARRAY;
-        /*
-        InstrucTable() {
-            OP_ARRAY.push_back(OP_ADC);
-            OP_ARRAY.push_back(OP_ADC_A);
-            OP_ARRAY.push_back(OP_ADC_AX);
-            OP_ARRAY.push_back(OP_ADC_AY);
-            OP_ARRAY.push_back(OP_ADC_IX);
-            OP_ARRAY.push_back(OP_ADC_IX);
-            OP_ARRAY.push_back(OP_ADC_IY);
-
-            OP_ARRAY.push_back(OP_AND);
-            OP_ARRAY.push_back(OP_AND_ZP);
-            OP_ARRAY.push_back(OP_AND_ZPX);
-            OP_ARRAY.push_back(OP_AND_A);
-            OP_ARRAY.push_back(OP_AND_AX);
-            OP_ARRAY.push_back(OP_AND_AY);
-            OP_ARRAY.push_back(OP_AND_IX);
-            OP_ARRAY.push_back(OP_AND_IY);
-
-            OP_ARRAY.push_back(OP_ASL_ACCUMULATOR);
-            OP_ARRAY.push_back(OP_ASL_ZP);
-            OP_ARRAY.push_back(OP_ASL_ZPX);
-            OP_ARRAY.push_back(OP_ASL_A);
-            OP_ARRAY.push_back(OP_ASL_AX);
+        struct InstructionTable {
+            inline static std::array<fnPtr, 0xFF> Table;
             
-            OP_ARRAY.push_back(OP_BIT_ZP);
-            OP_ARRAY.push_back(OP_BIT_A);
+            struct InstructionSet{
+                static void LDA(){
+                    /*
+                    A = Val;
+                    this->Flag.Z = (A == 0);
+                    this->Flag.N = (A & 0b10000000) > 0;
+                    */
+                }
 
-            OP_ARRAY.push_back(OP_BRK);
+                InstructionSet(){
+                    std::cout << "hi\n";
+                    InstructionTable::Table[OP_LDA] = LDA;
+                    // bullshit won't assign thats why you segfault, dan
+                }
+            };
+            InstructionSet set;
+            inline auto * operator[](u32 OP) {
+                return Table[OP];
+            }
+                
+            
+        };
+            
+            
 
-            OP_ARRAY.push_back(OP_CMP);
-            OP_ARRAY.push_back(OP_CMP_ZP);
-            OP_ARRAY.push_back(OP_CMP_ZPX);
-            OP_ARRAY.push_back(OP_CMP_A);
-            OP_ARRAY.push_back(OP_CMP_Z);
-        }
-        */
-        static const std::array<fnPtr, 0xFF> Table;
-        inline void operator[](u32 OP){
-            Table[OP]();
-            return;
-        }
-    };
+            
+
 };

@@ -1,12 +1,12 @@
 type Byte = u8;
 type Word = u16;
 
+/// A fixed-size of 65535 bytes
+/// 
 #[derive(Debug)]
 struct MEMORY {
-    // max_memory: 65536
     data: [u8; 1024 * 64],
 }
-
 impl MEMORY {
     fn new() -> Self {
         Self {
@@ -24,6 +24,22 @@ struct Status {
     d: Byte, //decimal
     b: Byte, //break
 }
+/*
+impl Iterator for Status {
+    type Item = Byte;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next()
+    }
+}
+*/
+/*
+impl Status {
+    fn getflag(self) {
+        let f: Vec<u8> = self.collect();
+    
+    }
+}
+*/
 struct CPU {
     acc: Byte, //accumulator
     x: Byte,   //index
@@ -50,7 +66,8 @@ impl CPU {
 }
 
 fn main() {
-    let mem = MEMORY::new();
-
+    let mut _cpu = CPU::new();
+    let mut _mem = MEMORY::new();
+    //println!("{:?}", _cpu.status.getflag());
     println!("good bye cruel world...");
 }

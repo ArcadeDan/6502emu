@@ -1,24 +1,25 @@
-use array_macro::array;
 
 
 type Byte = u8;
 type Word = u16;
 
+#[derive(Debug)]
 struct MEMORY {
-    Data: [Byte; 1024 * 64],
-
+    data: [u8; 1024 * 64],
 }
 
 impl MEMORY {
     fn new() -> Self {
-        Self { Data: array!([u8; 1024 * 64]) }
+        Self { data: [0; 1024 * 64] }
     }
-
-
 }
 
 
 
 fn main() {
+
+    let mem = MEMORY::new();
+  
+
     println!("good bye cruel world...");
 }

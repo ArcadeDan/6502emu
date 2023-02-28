@@ -15,7 +15,9 @@ impl MEMORY {
     }
 
     fn reset(&mut self) {
-        self.data.map(|mut byte| byte = 0x00 as u8);
+        for byte in self.data.iter_mut() {
+            *byte = 0x00;
+        }
     }
 
 }
@@ -91,6 +93,10 @@ fn main() {
     let mut _cpu = CPU::new();
     let mut _mem = MEMORY::new();
     //println!("{:?}", _cpu.status.getflag());
+    _mem.data[0] = 0x0f;
+    dbg!(_mem.data[0]);
+    _mem.reset();
+    dbg!(_mem.data[0]);
     println!("good bye cruel world...");
 }
 

@@ -63,6 +63,23 @@ impl CPU {
             status: Status::default(),
         }
     }
+
+    fn reset(&mut self) {
+        self.acc = 0x00;
+        self.x = 0x00;
+        self.y = 0x00;
+        
+        self.stkptr = 0x00;
+        self.prgmctr = 0x00;
+        
+        self.status.v = 0x00;
+        self.status.n = 0x00;
+        self.status.c = 0x00;
+        self.status.z = 0x00;
+        self.status.i = 0x00;
+        self.status.d = 0x00;
+        self.status.b = 0x00;
+    }
 }
 
 fn main() {
@@ -70,4 +87,36 @@ fn main() {
     let mut _mem = MEMORY::new();
     //println!("{:?}", _cpu.status.getflag());
     println!("good bye cruel world...");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn cpu_register_reset() {
+        let mut cpu = CPU::new();
+        cpu.x = 0x50;
+        cpu.reset();
+        assert_eq!(cpu.x, 0x00);
+        
+
+    }
+    #[test]
+    fn cpu_status_reset() {
+        let mut cpu = CPU::new();
+        cpu.status.v = 0x7A;
+        cpu.reset();
+        assert_eq!(cpu.status.v, 0x00);
+    }
+    #[test]
+    fn cpu_complete_reset() {
+        let mut cpu = CPU::new();
+        cpu.x = 0x50;
+        cpu.reset();
+        assert_eq!(cpu.x, 0x00);
+        cpu.status.v = 0x7A;
+        cpu.reset();
+        assert_eq!(cpu.status.v, 0x00);
+    }
 }

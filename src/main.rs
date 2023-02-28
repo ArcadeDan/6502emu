@@ -104,21 +104,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn cpu_register_reset() {
+    fn test_cpu_register_reset() {
         let mut cpu = CPU::new();
         cpu.x = 0x50;
         cpu.reset();
         assert_eq!(cpu.x, 0x00);
     }
     #[test]
-    fn cpu_status_reset() {
+    fn test_cpu_status_reset() {
         let mut cpu = CPU::new();
         cpu.status.v = 0x7A;
         cpu.reset();
         assert_eq!(cpu.status.v, 0x00);
     }
     #[test]
-    fn cpu_complete_reset() {
+    fn test_cpu_complete_reset() {
         let mut cpu = CPU::new();
         cpu.x = 0x50;
         cpu.reset();
@@ -129,7 +129,7 @@ mod tests {
     }
 
     #[test]
-    fn memory_reset() {
+    fn test_memory_reset() {
         let mut memory = MEMORY::new();
         memory.data[0] = 0x40;
         memory.reset();

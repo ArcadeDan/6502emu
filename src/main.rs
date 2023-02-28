@@ -2,6 +2,8 @@ type Byte = u8;
 type Word = u16;
 
 
+
+
 #[allow(dead_code)]
 enum Instruction {
     ADC, // add w/ carry
@@ -60,6 +62,9 @@ impl MEMORY {
     ///returns byte from 16bit address range
     fn get_byte(&self, address: u16) -> u8 {
         self.data[address as usize]
+    }
+    fn set_byte(&mut self, address: u16, value: u8) {
+        self.data[address as usize] = value;
     }
 }
 #[allow(dead_code)]
@@ -191,9 +196,17 @@ mod tests {
         assert_eq!(memory.data[0], 0x00);
     }
     #[test]
-    fn test_fetch_at_address() {
+    fn test_read_at_address() {
         let mut memory = MEMORY::new();
         memory.data[0] = 0x40;
         assert_eq!(memory.get_byte(0x0000), 0x40);
+    }
+    #[test]
+    fn test_write_to_address() {
+        let mut memory = MEMORY::new();
+        memory.data[0] = 0x40;
+        memory.set_byte(0x0000, 0x1A);
+        assert_eq!(memory.data[0], 0x1A);
+        
     }
 }

@@ -1,9 +1,6 @@
 type Byte = u8;
 type Word = u16;
 
-
-
-
 #[allow(dead_code)]
 enum Instruction {
     ADC, // add w/ carry
@@ -26,7 +23,7 @@ enum Instruction {
     INC, // increment
     JMP, // jump
     JSR, // jump to subroutine
-    LDA, // load accumulator 
+    LDA, // load accumulator
     LDX, // load x register
     LDY, // load y register
     LSR, // logical shift right
@@ -66,6 +63,7 @@ impl MEMORY {
     fn set_byte(&mut self, address: u16, value: u8) {
         self.data[address as usize] = value;
     }
+
 }
 #[allow(dead_code)]
 #[derive(Default)]
@@ -207,6 +205,16 @@ mod tests {
         memory.data[0] = 0x40;
         memory.set_byte(0x0000, 0x1A);
         assert_eq!(memory.data[0], 0x1A);
+    }
+
+    #[test]
+    fn test_get_addr_from_bitwidth() {
+        let mut memory = MEMORY::new();
+        memory.data[1] = 0x10;
+        assert_eq!(memory.get_byte(0x0001), 0x10);
+        assert_eq!(memory.get_byte(0x01), 0x10);
+        assert_eq!(memory.get_byte(0x1), 0x10);
+        //assert_eq!(memory.data[0x0010], 0x10);
         
     }
 }

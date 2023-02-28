@@ -124,4 +124,12 @@ mod tests {
         cpu.reset();
         assert_eq!(cpu.status.v, 0x00);
     }
+
+    #[test]
+    fn memory_reset() {
+        let mut memory = MEMORY::new();
+        memory.data[0] = 0x40;
+        memory.reset();
+        assert_eq!(memory.data[0], 0x00);
+    }
 }

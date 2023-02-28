@@ -19,7 +19,13 @@ impl MEMORY {
             *byte = 0x00;
         }
     }
+
+    fn get_byte(&self, address: u16) -> u8 {
+        self.data[address as usize]
+    }
+
 }
+#[allow(dead_code)]
 #[derive(Default)]
 struct Status {
     v: Byte, //overflow
@@ -46,6 +52,7 @@ impl Status {
     }
 }
 */
+#[allow(dead_code)]
 struct CPU {
     acc: Byte, //accumulator
     x: Byte,   //index
@@ -57,6 +64,7 @@ struct CPU {
     status: Status,
 }
 
+#[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
         //sets ALL to 0
@@ -88,14 +96,24 @@ impl CPU {
     }
 }
 
+impl Default for CPU {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Default for MEMORY {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 fn main() {
-    let mut _cpu = CPU::new();
-    let mut _mem = MEMORY::new();
-    //println!("{:?}", _cpu.status.getflag());
-    _mem.data[0] = 0x0f;
-    dbg!(_mem.data[0]);
-    _mem.reset();
-    dbg!(_mem.data[0]);
+    let mut _cpu = CPU::default();
+    let mut _mem = MEMORY::default();
+    _mem.data[0] = 0x0A;
+    dbg!(_mem.get_byte(0x0000));
+ 
     println!("good bye cruel world...");
 }
 
@@ -134,5 +152,11 @@ mod tests {
         memory.data[0] = 0x40;
         memory.reset();
         assert_eq!(memory.data[0], 0x00);
+    }
+    #[test]
+    fn test_fetch_at_address() {
+        let mut memory = MEMORY::new();
+        memory.data[0] = 0x40;
+        assert_eq!(memory.get_byte(0x0000), 0x40); 
     }
 }

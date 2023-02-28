@@ -1,6 +1,14 @@
 type Byte = u8;
 type Word = u16;
 
+const ADDRESS_LOW: u16 = 0x0000;
+const ADDRESS_HIGH: u16 = 0xFFFF;
+const MEMORY_RANGE: usize = (ADDRESS_HIGH - ADDRESS_LOW) as usize + 1;
+
+const STACK_LOW: u16 = 0x0100;
+const STACK_HIGH: u16 = 0x01FF;
+
+
 #[allow(dead_code)]
 enum Instruction {
     ADC, // add w/ carry
@@ -42,7 +50,7 @@ enum Instruction {
 /// A fixed-size of 65535 bytes
 #[derive(Debug)]
 struct MEMORY {
-    data: [u8; 1024 * 64],
+    data: [Byte; MEMORY_RANGE],
 }
 impl MEMORY {
     fn new() -> Self {
@@ -151,8 +159,7 @@ impl Default for MEMORY {
 fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
-    _mem.data[0] = 0x0A;
-    dbg!(_mem.get_byte(0x200A));
+    dbg!(MEMORY_RANGE);
 
     println!("good bye cruel world...");
 }

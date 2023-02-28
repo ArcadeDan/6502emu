@@ -1,8 +1,46 @@
 type Byte = u8;
 type Word = u16;
 
+
+#[allow(dead_code)]
+enum Instruction {
+    ADC, // add w/ carry
+    AND, // logical AND
+    ASL, // arithmetic shift left
+    BIT, // bit test
+    BRK, // break
+    CMP, // compare
+    CPY, // compare Y register
+    CPX, // compare x register
+    DEC, // decrement memory
+    EOR, // exclusive or
+    CLC, // clear carry flag
+    SEC, // set carry flag
+    CLI, // clear interrupt disable
+    SEI, // set interrupt disable
+    CLV, // clear overflow flag
+    CLD, // clear decimal mode
+    SED, // set decimal flag
+    INC, // increment
+    JMP, // jump
+    JSR, // jump to subroutine
+    LDA, // load accumulator 
+    LDX, // load x register
+    LDY, // load y register
+    LSR, // logical shift right
+    NOP, // no operation
+    ORA, // inclusive or
+    TAX, // transfer accumulator to x
+    TXA, // transfer x to accumulator
+    DEX, // decrement X register
+    INX, // increment x register
+    TAY, // transfer accumulator to y
+    DEY, // decrement y register
+    INY, // increment y register
+    ROL, // rotate left
+}
+
 /// A fixed-size of 65535 bytes
-///
 #[derive(Debug)]
 struct MEMORY {
     data: [u8; 1024 * 64],
@@ -19,11 +57,10 @@ impl MEMORY {
             *byte = 0x00;
         }
     }
-
+    ///returns byte from 16bit address range
     fn get_byte(&self, address: u16) -> u8 {
         self.data[address as usize]
     }
-
 }
 #[allow(dead_code)]
 #[derive(Default)]
@@ -112,8 +149,8 @@ fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
     _mem.data[0] = 0x0A;
-    dbg!(_mem.get_byte(0x0000));
- 
+    dbg!(_mem.get_byte(0x200A));
+
     println!("good bye cruel world...");
 }
 
@@ -157,6 +194,6 @@ mod tests {
     fn test_fetch_at_address() {
         let mut memory = MEMORY::new();
         memory.data[0] = 0x40;
-        assert_eq!(memory.get_byte(0x0000), 0x40); 
+        assert_eq!(memory.get_byte(0x0000), 0x40);
     }
 }

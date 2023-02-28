@@ -13,6 +13,11 @@ impl MEMORY {
             data: [0; 1024 * 64],
         }
     }
+
+    fn reset(&mut self) {
+        self.data.map(|mut byte| byte = 0x00 as u8);
+    }
+
 }
 #[derive(Default)]
 struct Status {

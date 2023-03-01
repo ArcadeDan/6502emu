@@ -8,6 +8,9 @@ const MEMORY_RANGE: usize = (ADDRESS_HIGH - ADDRESS_LOW) as usize + 1;
 const STACK_LOW: u16 = 0x0100;
 const STACK_HIGH: u16 = 0x01FF;
 
+fn xextend(x: u8) -> u16 {
+    u16::from(x)
+}
 
 #[allow(dead_code)]
 enum Instruction {
@@ -45,6 +48,16 @@ enum Instruction {
     DEY, // decrement y register
     INY, // increment y register
     ROL, // rotate left
+}
+#[allow(dead_code)]
+enum AddressingModes {
+    Accumulator,
+    Immediate,
+    Implied,
+    Relative,
+    ZeroPage,
+    Indirect,
+    Absolute,
 }
 
 /// A fixed-size of 65535 bytes
@@ -222,6 +235,11 @@ mod tests {
         assert_eq!(memory.get_byte(0x01), 0x10);
         assert_eq!(memory.get_byte(0x1), 0x10);
         //assert_eq!(memory.data[0x0010], 0x10);
-        
     }
+
+    #[test]
+    fn test_xextend_addr() {
+        assert_eq!(xextend(0xAA), 0x00AA);
+    }
+
 }

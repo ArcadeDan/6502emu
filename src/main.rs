@@ -113,17 +113,23 @@ impl Status {
     }
 }
 */
+
+
+
 #[allow(dead_code)]
 struct CPU {
     acc: Byte, //accumulator
     x: Byte,   //index
     y: Byte,   //index
 
+    
+
     stkptr: Word,
     prgmctr: Word,
 
     status: Status,
 }
+
 
 #[allow(dead_code)]
 impl CPU {
@@ -136,6 +142,7 @@ impl CPU {
             stkptr: Word::default(),
             prgmctr: Word::default(),
             status: Status::default(),
+            
         }
     }
 
@@ -154,6 +161,20 @@ impl CPU {
         self.status.i = Byte::default();
         self.status.d = Byte::default();
         self.status.b = Byte::default();
+    }
+    
+    fn LDA(&mut self, data: u8) {
+        self.acc = data;
+    }
+
+    fn execute(&mut self, m: MEMORY) {
+        let instruction = m.get_byte(self.stkptr);
+        let operand = m.get_byte(self.stkptr+1);
+        
+        match instruction{
+            0xA9 => self.LDA(operand),
+            _ => {}
+        }
     }
 }
 
@@ -240,6 +261,17 @@ mod tests {
     #[test]
     fn test_xextend_addr() {
         assert_eq!(xextend(0xAA), 0x00AA);
+    }
+
+    #[test]
+    fn test_cpu_LDA() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.data[0] = 0xA9;
+        memory.data[1] = 0x11;
+        cpu.LDA(0x11);
+        assert_eq!(cpu.acc, 0x11);
+
     }
 
 }

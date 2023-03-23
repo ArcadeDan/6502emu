@@ -26,9 +26,15 @@ enum InterpreterInstr {
     Exit,
     #[token("status")]
     Status,
+    #[token("execute")]
+    Execute,
+    #[token("set_ctr")]
+    SetCounter,
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
+    
+
 
     // instructions
     #[token("setbyte")]
@@ -41,6 +47,8 @@ enum InterpreterInstr {
     GetBytes,
     #[token("jmp")]
     Jump,
+   
+
 
     #[error]
     #[regex(r"[\t\n\f ]+", logos::skip)]
@@ -210,7 +218,7 @@ impl CPU {
         self.prgmctr = data;
     }
 
-    fn execute(&mut self, m: MEMORY) {
+    fn execute(&mut self, m: &MEMORY) {
         let instruction = m.get_byte(self.prgmctr);
         let operand = m.get_byte(self.prgmctr + 1);
 
@@ -220,6 +228,9 @@ impl CPU {
 
             _ => {}
         }
+    }
+    fn set_ctr(&mut self, value: u16) {
+       self.stkptr = value;
     }
 }
 
@@ -315,20 +326,19 @@ fn main() {
 
                     _cpu.jmp(hex);
                 }
+                InterpreterInstr::Execute => {
+                    _cpu.execute(&_mem);
+                }
+
                 _ => {}
             }
         }
     }
-
-    //println!("good bye cruel world...");
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    // write a test that tests the cpu jump call by reading the byte from memory
-    // why does this test fail?
 
     #[test]
     fn test_cpu_JMP() {
@@ -338,7 +348,7 @@ mod tests {
         mem.set_byte(0x0000, 0x4C);
         mem.set_byte(0x0001, 0xAA);
         mem.set_byte(0x0002, 0x55);
-        
+
         cpu.execute(mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);

@@ -218,10 +218,10 @@ impl CPU {
     fn execute(&mut self, m: MEMORY) {
         let instruction = m.get_byte(self.prgmctr);
         let operand = m.get_byte(self.prgmctr + 1);
-
+        dbg!(instruction, operand);
         match instruction {
             0xA9 => self.lda(operand),
-            0x4C => self.jmp(operand as u16),
+            0x4C => self.jmp(xextend(operand)),
 
             
             _ => {}
@@ -324,6 +324,9 @@ fn main() {
 
                     _cpu.jmp(hex);
                 }
+                InterpreterInstr::Execute => {
+
+                }
                 _ => {}
             }
         }
@@ -423,7 +426,7 @@ mod tests {
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
         memory.data[1] = 0x11;
-        cpu.lda(0x11);
+        cpu.execute(memory);
         assert_eq!(cpu.acc, 0x11);
     }
 }

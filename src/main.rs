@@ -1,4 +1,7 @@
-use std::{io::{stdin, BufRead}, process::exit};
+use std::{
+    io::{stdin, BufRead},
+    process::exit,
+};
 
 use logos::Logos;
 
@@ -14,7 +17,6 @@ const STACK_HIGH: u16 = 0x01FF;
 
 #[derive(Logos, Debug, PartialEq, Clone)]
 enum InterpreterInstr {
-
     // utility
     #[token("reg")]
     Registers,
@@ -25,7 +27,6 @@ enum InterpreterInstr {
     #[token("status")]
     Status,
 
-
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -33,16 +34,17 @@ enum InterpreterInstr {
     // instructions
     #[token("setbyte")]
     SetByte,
+    #[token("setbytes")]
+    SetBytes,
     #[token("getbyte")]
     GetByte,
+    #[token("getbytes")]
+    GetBytes,
 
     #[error]
     #[regex(r"[\t\n\f ]+", logos::skip)]
     ERROR,
 }
-
-
-
 
 fn xextend(x: u8) -> u16 {
     u16::from(x)
@@ -120,7 +122,18 @@ impl MEMORY {
     fn set_byte(&mut self, address: u16, value: u8) {
         self.data[address as usize] = value;
     }
+
+    fn set_bytes(&mut self, start: u16, values: &[u8]) {
+        let start = start as usize;
+        let end = start + values.len();
+        self.data[start..end].copy_from_slice(values);
+    }
+   
+    
+
 }
+
+
 #[allow(dead_code)]
 #[derive(Default)]
 struct Status {
@@ -223,15 +236,15 @@ fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
 
-
-
-
     // REPL
     for line in stdin().lock().lines() {
         let expression = line.unwrap();
         let lexer = InterpreterInstr::lexer(&expression);
-        let instructions: Vec<_> = lexer.spanned().filter(|x| x.0 != InterpreterInstr::ERROR).collect();
-        
+        let instructions: Vec<_> = lexer
+            .spanned()
+            .filter(|x| x.0 != InterpreterInstr::ERROR)
+            .collect();
+
         for instr in instructions.iter() {
             match instr.0 {
                 InterpreterInstr::Registers => {
@@ -264,6 +277,12 @@ fn main() {
 
                     println!("{}", _mem.get_byte(hex));
                 }
+                InterpreterInstr::GetBytes => {
+                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let hex = u16::from_str_radix(address, 16).unwrap();
+
+                    println!("{}", _mem.get_byte(hex));
+                }
                 InterpreterInstr::SetByte => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -273,14 +292,25 @@ fn main() {
 
                     _mem.set_byte(hex, byte);
                 }
-                _ => {}
-            }  
-        }
-            
-            
-        
-    }
 
+                // TODO: fix this
+                InterpreterInstr::SetBytes => {
+                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let hex = u16::from_str_radix(address, 16).unwrap();
+
+                    let values = expression.split_ascii_whitespace().nth(2).unwrap();
+                    let bytes: Vec<u8> = values
+                        .split(",")
+                        .map(|x| u8::from_str_radix(x, 16).unwrap())
+                        .collect();
+
+                    _mem.set_bytes(hex, &bytes);
+                }
+            
+                _ => {}
+            }
+        }
+    }
 
     //println!("good bye cruel world...");
 }

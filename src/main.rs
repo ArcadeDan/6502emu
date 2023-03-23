@@ -14,6 +14,8 @@ const STACK_HIGH: u16 = 0x01FF;
 
 #[derive(Logos, Debug, PartialEq, Clone)]
 enum InterpreterInstr {
+
+    // utility
     #[token("reg")]
     Registers,
     #[token("reset")]
@@ -22,6 +24,18 @@ enum InterpreterInstr {
     Exit,
     #[token("status")]
     Status,
+
+
+    // data
+    #[regex(r"(0x+[A-Z \d])\w+")]
+    HexValue,
+
+    // instructions
+    #[token("setbyte")]
+    SetByte,
+    #[token("getbyte")]
+    GetByte,
+
     #[error]
     #[regex(r"[\t\n\f ]+", logos::skip)]
     ERROR,
@@ -209,13 +223,16 @@ fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
 
+
+
+
     // REPL
     for line in stdin().lock().lines() {
         let expression = line.unwrap();
         let lexer = InterpreterInstr::lexer(&expression);
         let instructions: Vec<_> = lexer.spanned().filter(|x| x.0 != InterpreterInstr::ERROR).collect();
         
-        for instr in instructions {
+        for instr in instructions.iter() {
             match instr.0 {
                 InterpreterInstr::Registers => {
                     println!("acc: {:?}", _cpu.acc);
@@ -240,6 +257,21 @@ fn main() {
                 InterpreterInstr::Exit => {
                     println!("good bye cruel world...");
                     exit(0)
+                }
+                InterpreterInstr::GetByte => {
+                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let hex = u16::from_str_radix(address, 16).unwrap();
+
+                    println!("{}", _mem.get_byte(hex));
+                }
+                InterpreterInstr::SetByte => {
+                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let hex = u16::from_str_radix(address, 16).unwrap();
+
+                    let value = expression.split_ascii_whitespace().nth(2).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+
+                    _mem.set_byte(hex, byte);
                 }
                 _ => {}
             }  

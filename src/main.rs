@@ -1,3 +1,7 @@
+use std::{io::{stdin, BufRead}, process::exit};
+
+use logos::Logos;
+
 type Byte = u8;
 type Word = u16;
 
@@ -7,6 +11,24 @@ const MEMORY_RANGE: usize = (ADDRESS_HIGH - ADDRESS_LOW) as usize + 1;
 
 const STACK_LOW: u16 = 0x0100;
 const STACK_HIGH: u16 = 0x01FF;
+
+#[derive(Logos, Debug, PartialEq, Clone)]
+enum InterpreterInstr {
+    #[token("reg")]
+    Registers,
+    #[token("reset")]
+    Reset,
+    #[token("exit")]
+    Exit,
+    #[token("status")]
+    Status,
+    #[error]
+    #[regex(r"[\t\n\f ]+", logos::skip)]
+    ERROR,
+}
+
+
+
 
 fn xextend(x: u8) -> u16 {
     u16::from(x)
@@ -84,7 +106,6 @@ impl MEMORY {
     fn set_byte(&mut self, address: u16, value: u8) {
         self.data[address as usize] = value;
     }
-
 }
 #[allow(dead_code)]
 #[derive(Default)]
@@ -114,22 +135,17 @@ impl Status {
 }
 */
 
-
-
 #[allow(dead_code)]
 struct CPU {
     acc: Byte, //accumulator
     x: Byte,   //index
     y: Byte,   //index
 
-    
-
     stkptr: Word,
     prgmctr: Word,
 
     status: Status,
 }
-
 
 #[allow(dead_code)]
 impl CPU {
@@ -142,7 +158,6 @@ impl CPU {
             stkptr: Word::default(),
             prgmctr: Word::default(),
             status: Status::default(),
-            
         }
     }
 
@@ -162,17 +177,17 @@ impl CPU {
         self.status.d = Byte::default();
         self.status.b = Byte::default();
     }
-    
-    fn LDA(&mut self, data: u8) {
+
+    fn lda(&mut self, data: u8) {
         self.acc = data;
     }
 
     fn execute(&mut self, m: MEMORY) {
         let instruction = m.get_byte(self.stkptr);
-        let operand = m.get_byte(self.stkptr+1);
-        
-        match instruction{
-            0xA9 => self.LDA(operand),
+        let operand = m.get_byte(self.stkptr + 1);
+
+        match instruction {
+            0xA9 => self.lda(operand),
             _ => {}
         }
     }
@@ -193,9 +208,49 @@ impl Default for MEMORY {
 fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
-    dbg!(MEMORY_RANGE);
 
-    println!("good bye cruel world...");
+    // REPL
+    for line in stdin().lock().lines() {
+        let expression = line.unwrap();
+        let lexer = InterpreterInstr::lexer(&expression);
+        let instructions: Vec<_> = lexer.spanned().filter(|x| x.0 != InterpreterInstr::ERROR).collect();
+        
+        for instr in instructions {
+            match instr.0 {
+                InterpreterInstr::Registers => {
+                    println!("acc: {:?}", _cpu.acc);
+                    println!("x: {:?}", _cpu.x);
+                    println!("y: {:?}", _cpu.y);
+                    println!("stkptr: {:?}", _cpu.stkptr);
+                    println!("prgmctr: {:?}", _cpu.prgmctr);
+                }
+                InterpreterInstr::Reset => {
+                    _cpu.reset();
+                    _mem.reset();
+                }
+                InterpreterInstr::Status => {
+                    println!("v: {:?}", _cpu.status.v);
+                    println!("n: {:?}", _cpu.status.n);
+                    println!("c: {:?}", _cpu.status.c);
+                    println!("z: {:?}", _cpu.status.z);
+                    println!("i: {:?}", _cpu.status.i);
+                    println!("d: {:?}", _cpu.status.d);
+                    println!("b: {:?}", _cpu.status.b);
+                }
+                InterpreterInstr::Exit => {
+                    println!("good bye cruel world...");
+                    exit(0)
+                }
+                _ => {}
+            }  
+        }
+            
+            
+        
+    }
+
+
+    //println!("good bye cruel world...");
 }
 
 #[cfg(test)]
@@ -269,9 +324,7 @@ mod tests {
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
         memory.data[1] = 0x11;
-        cpu.LDA(0x11);
+        cpu.lda(0x11);
         assert_eq!(cpu.acc, 0x11);
-
     }
-
 }

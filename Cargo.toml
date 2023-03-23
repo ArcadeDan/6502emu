@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 array-init = "2.1.0"
+logos = "0.12.1"

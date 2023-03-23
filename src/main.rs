@@ -26,7 +26,6 @@ enum InterpreterInstr {
     Exit,
     #[token("status")]
     Status,
-
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -40,6 +39,8 @@ enum InterpreterInstr {
     GetByte,
     #[token("getbytes")]
     GetBytes,
+    #[token("jmp")]
+    Jump,
 
     #[error]
     #[regex(r"[\t\n\f ]+", logos::skip)]
@@ -209,16 +210,27 @@ impl CPU {
         self.acc = data;
     }
 
+    fn jmp(&mut self, data: u16) {
+        self.prgmctr = data;
+    }
+
+    
     fn execute(&mut self, m: MEMORY) {
-        let instruction = m.get_byte(self.stkptr);
-        let operand = m.get_byte(self.stkptr + 1);
+        let instruction = m.get_byte(self.prgmctr);
+        let operand = m.get_byte(self.prgmctr + 1);
 
         match instruction {
             0xA9 => self.lda(operand),
+            0x4C => self.jmp(operand as u16),
+
+            
             _ => {}
         }
     }
 }
+
+
+
 
 impl Default for CPU {
     fn default() -> Self {
@@ -306,7 +318,12 @@ fn main() {
 
                     _mem.set_bytes(hex, &bytes);
                 }
-            
+                InterpreterInstr::Jump => {
+                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let hex = u16::from_str_radix(address, 16).unwrap();
+
+                    _cpu.jmp(hex);
+                }
                 _ => {}
             }
         }
@@ -319,6 +336,26 @@ fn main() {
 mod tests {
     use super::*;
 
+    // write a test that tests the cpu jump call by reading the byte from memory
+    // why does this test fail?
+    
+
+
+
+
+
+    #[test]
+    fn test_cpu_jump() {
+        let mut cpu = CPU::new();
+        let mut mem = MEMORY::new();
+
+        mem.set_byte(0x00FF, 0x4C);
+        cpu.jmp(0x00FF);
+        cpu.execute(mem);
+
+        assert_eq!(cpu.prgmctr, 0x0100);
+    }
+   
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();

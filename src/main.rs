@@ -47,9 +47,8 @@ enum InterpreterInstr {
     GetBytes,
     #[token("jmp")]
     Jump,
-   
-
-
+    #[token("execute")]
+    Execute,
     #[error]
     #[regex(r"[\t\n\f ]+", logos::skip)]
     ERROR,
@@ -218,14 +217,16 @@ impl CPU {
         self.prgmctr = data;
     }
 
-    fn execute(&mut self, m: &MEMORY) {
+    fn execute(&mut self, m: MEMORY) {
         let instruction = m.get_byte(self.prgmctr);
-        let operand = m.get_byte(self.prgmctr + 1);
-
+        let operand1 = m.get_byte(self.prgmctr + 1);
+        let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
             0xA9 => self.lda(operand),
             0x4C => self.jmp(operand as u16),
 
+            0xA9 => self.lda(operand1),
+            0x4C => self.jmp(make_address(operand1, operand2)),
             _ => {}
         }
     }
@@ -244,6 +245,11 @@ impl Default for MEMORY {
     fn default() -> Self {
         Self::new()
     }
+}
+// concatenates two operands into a u16 address
+fn make_address(o1: u8, o2: u8) -> u16 {
+    let concatdata: u16 = ((o1 as u16) << 8) | o2 as u16;
+    concatdata
 }
 
 fn main() {
@@ -329,7 +335,6 @@ fn main() {
                 InterpreterInstr::Execute => {
                     _cpu.execute(&_mem);
                 }
-
                 _ => {}
             }
         }
@@ -347,11 +352,13 @@ mod tests {
 
         mem.set_byte(0x0000, 0x4C);
         mem.set_byte(0x0001, 0xAA);
+
         mem.set_byte(0x0002, 0x55);
 
         cpu.execute(mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
+
     }
 
     #[test]
@@ -423,5 +430,12 @@ mod tests {
         memory.data[1] = 0x11;
         cpu.execute(memory);
         assert_eq!(cpu.acc, 0x11);
+    }
+
+    #[test]
+    fn test_fn_make_address() {
+        let operand1: u8 = 0xAA;
+        let operand2: u8 = 0xFF;
+        assert_eq!(make_address(operand1, operand2), 0xAAFF);
     }
 }

@@ -130,11 +130,7 @@ impl MEMORY {
         let end = start + values.len();
         self.data[start..end].copy_from_slice(values);
     }
-   
-    
-
 }
-
 
 #[allow(dead_code)]
 #[derive(Default)]
@@ -215,7 +211,6 @@ impl CPU {
         self.prgmctr = data;
     }
 
-    
     fn execute(&mut self, m: MEMORY) {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
@@ -227,13 +222,7 @@ impl CPU {
             _ => {}
         }
     }
-
-
 }
-
-
-
-
 
 impl Default for CPU {
     fn default() -> Self {
@@ -251,7 +240,6 @@ fn make_address(o1: u8, o2: u8) -> u16 {
     let concatdata: u16 = ((o1 as u16) << 8) | o2 as u16;
     concatdata
 }
-
 
 fn main() {
     let mut _cpu = CPU::default();
@@ -333,9 +321,7 @@ fn main() {
 
                     _cpu.jmp(hex);
                 }
-                InterpreterInstr::Execute => {
-                    
-                }
+                InterpreterInstr::Execute => {}
                 _ => {}
             }
         }
@@ -348,26 +334,19 @@ fn main() {
 mod tests {
     use super::*;
 
-    // write a test that tests the cpu jump call by reading the byte from memory
-    // why does this test fail?
-    
-
-
-
-
-
     #[test]
     fn test_cpu_jump() {
         let mut cpu = CPU::new();
         let mut mem = MEMORY::new();
 
         mem.set_byte(0x0000, 0x4C);
-        cpu.jmp(0x00FF);
+        mem.set_byte(0x0001, 0xAA);
+        mem.set_byte(0x0002, 0xFF);
         cpu.execute(mem);
 
-        assert_eq!(cpu.prgmctr, 0x0100);
+        assert_eq!(cpu.prgmctr, 0xAAFF);
     }
-   
+
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();

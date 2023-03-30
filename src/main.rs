@@ -246,10 +246,12 @@ impl Default for MEMORY {
         Self::new()
     }
 }
-
+// concatenates two operands into a u16 address
 fn make_address(o1: u8, o2: u8) -> u16 {
-    todo!()
+    let concatdata: u16 = ((o1 as u16) << 8) | o2 as u16;
+    concatdata
 }
+
 
 fn main() {
     let mut _cpu = CPU::default();

@@ -128,7 +128,7 @@ impl MEMORY {
     fn set_byte(&mut self, address: u16, value: u8) {
         self.data[address as usize] = value;
     }
-    
+
     fn set_bytes(&mut self, start: u16, values: &[u8]) {
         let start = start as usize;
         let end = start + values.len();
@@ -392,13 +392,13 @@ mod tests {
         assert_eq!(memory.data[0], 0x00);
     }
     #[test]
-    fn test_read_at_address() {
+    fn test_mem_read_at_address() {
         let mut memory = MEMORY::new();
         memory.data[0] = 0x40;
         assert_eq!(memory.get_byte(0x0000), 0x40);
     }
     #[test]
-    fn test_write_to_address() {
+    fn test_mem_write_to_address() {
         let mut memory = MEMORY::new();
         memory.data[0] = 0x40;
         memory.set_byte(0x0000, 0x1A);
@@ -406,7 +406,7 @@ mod tests {
     }
 
     #[test]
-    fn test_get_addr_from_bitwidth() {
+    fn test_mem_get_addr_from_bitwidth() {
         let mut memory = MEMORY::new();
         memory.data[1] = 0x10;
         assert_eq!(memory.get_byte(0x0001), 0x10);
@@ -416,7 +416,7 @@ mod tests {
     }
 
     #[test]
-    fn test_xextend_addr() {
+    fn test_fn_xextend_addr() {
         assert_eq!(xextend(0xAA), 0x00AA);
     }
 

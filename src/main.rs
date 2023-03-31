@@ -365,7 +365,7 @@ mod tests {
         assert_eq!(cpu.prgmctr, 0xAA55);
 
     }
-
+    //
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();

@@ -243,10 +243,17 @@ impl Default for MEMORY {
 }
 // concatenates two operands into a u16 address
 fn make_address(o1: u8, o2: u8) -> u16 {
-    let concatdata: u16 = ((o1 as u16) << 8) | o2 as u16;
-    concatdata
+    let address: u16 = ((o1 as u16) << 8) | o2 as u16;
+    address
 }
 
+// splits u16 into u8 tuple
+fn split_address(addr: u16) -> (u8, u8) {
+    let high_byte: u8 = (addr >> 8) as u8;
+    let low_byte: u8 = addr as u8;
+
+    (high_byte, low_byte) 
+}
 fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
@@ -435,5 +442,11 @@ mod tests {
         let operand1: u8 = 0xAA;
         let operand2: u8 = 0xFF;
         assert_eq!(make_address(operand1, operand2), 0xAAFF);
+    }
+
+    #[test]
+    fn test_fn_split_address() {
+        let address: u16 = 0xFFAA;
+        assert_eq!(split_address(address), (0xFF, 0xAA));
     }
 }

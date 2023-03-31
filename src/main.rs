@@ -1,5 +1,5 @@
 use std::{
-    io::{stdin, BufRead},
+    io::{stdin, BufRead, stdout, Write},
     process::exit,
 };
 
@@ -128,7 +128,7 @@ impl MEMORY {
     fn set_byte(&mut self, address: u16, value: u8) {
         self.data[address as usize] = value;
     }
-
+    
     fn set_bytes(&mut self, start: u16, values: &[u8]) {
         let start = start as usize;
         let end = start + values.len();
@@ -253,6 +253,9 @@ fn main() {
 
     // REPL
     for line in stdin().lock().lines() {
+        print!("> ");
+        stdout().flush();
+
         let expression = line.unwrap();
         let lexer = InterpreterInstr::lexer(&expression);
         let instructions: Vec<_> = lexer

@@ -26,8 +26,6 @@ enum InterpreterInstr {
     Exit,
     #[token("status")]
     Status,
-    #[token("execute")]
-    Execute,
     #[token("set_ctr")]
     SetCounter,
     // data
@@ -217,14 +215,11 @@ impl CPU {
         self.prgmctr = data;
     }
 
-    fn execute(&mut self, m: MEMORY) {
+    fn execute(&mut self, m: &MEMORY) {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-            0xA9 => self.lda(operand),
-            0x4C => self.jmp(operand as u16),
-
             0xA9 => self.lda(operand1),
             0x4C => self.jmp(make_address(operand1, operand2)),
             _ => {}
@@ -355,7 +350,7 @@ mod tests {
 
         mem.set_byte(0x0002, 0x55);
 
-        cpu.execute(mem);
+        cpu.execute(&mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
 
@@ -428,7 +423,7 @@ mod tests {
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
         memory.data[1] = 0x11;
-        cpu.execute(memory);
+        cpu.execute(&memory);
         assert_eq!(cpu.acc, 0x11);
     }
 

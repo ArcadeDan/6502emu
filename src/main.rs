@@ -212,7 +212,12 @@ impl CPU {
     fn push(&mut self, memory: &mut MEMORY, data: Byte) {
         memory.set_byte(self.stkptr, data);
         self.stkptr -= 1;
-        self.stkptr = xextend(data);
+        //self.stkptr = xextend(data);
+    }
+
+    fn pull(&mut self, memory: &mut MEMORY) -> Byte {
+        self.stkptr += 1;
+        memory.get_byte(self.stkptr)
     }
 
     fn jmp(&mut self, data: Word) {
@@ -223,19 +228,38 @@ impl CPU {
         self.push(memory, self.acc)
     }
 
+    fn pla(&mut self, memory: &mut MEMORY) -> Byte {
+        self.acc = self.pull(memory);
+        self.acc
+    }
+
     fn nop(&mut self) {
         self.prgmctr += 1;
     }
 
-    fn execute(&mut self, m: &mut MEMORY) {
+    fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-            0xA9 => self.lda(operand1),
-            0x4C => self.jmp(make_address(operand1, operand2)),
-            0x48 => self.pha( m, self.acc),
-            _ => {}
+            0xA9 => {
+                self.lda(operand1); 
+                None
+            },
+            0x4C => {
+                self.jmp(make_address(operand1, operand2));
+                None
+
+            },
+            0x48 => {
+                self.pha( m, self.acc);
+                None
+            },
+            0x68 => {
+                self.pla(m);
+                Some(self.acc)
+            },
+            _ => None
         }
     }
     fn set_ctr(&mut self, value: Word) {
@@ -477,5 +501,25 @@ mod tests {
         let mut cpu = CPU::new();
         cpu.push(&mut memory, 0xFF);
         assert_eq!(memory.get_byte(0x01FF), 0xFF);
+    }
+    #[test]
+    fn test_util_PULL() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0xFF);
+        let value: Byte = cpu.pull(&mut memory);
+        assert_eq!(value, 0xFF);
+    }
+    #[test]
+    fn test_cpu_PLA() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        
+        cpu.push(&mut memory, 0x55);
+        let value: Byte = cpu.pla(&mut memory);
+        assert_eq!(value, cpu.acc);
+        
+    
+    
     }
 }

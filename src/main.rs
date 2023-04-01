@@ -120,14 +120,14 @@ impl MEMORY {
         }
     }
     ///returns byte from 16bit address range
-    fn get_byte(&self, address: u16) -> u8 {
+    fn get_byte(&self, address: Word) -> Byte {
         self.data[address as usize]
     }
-    fn set_byte(&mut self, address: u16, value: u8) {
+    fn set_byte(&mut self, address: Word, value: Byte) {
         self.data[address as usize] = value;
     }
 
-    fn set_bytes(&mut self, start: u16, values: &[u8]) {
+    fn set_bytes(&mut self, start: Word, values: &[Byte]) {
         let start = start as usize;
         let end = start + values.len();
         self.data[start..end].copy_from_slice(values);
@@ -174,8 +174,6 @@ struct CPU {
     status: Status,
 }
 
-
-
 #[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
@@ -207,12 +205,19 @@ impl CPU {
         self.status.b = Byte::default();
     }
 
-    fn lda(&mut self, data: u8) {
+    fn lda(&mut self, data: Byte) {
         self.acc = data;
-
     }
 
-    fn jmp(&mut self, data: u16) {
+    fn push(&mut self, memory: &MEMORY, data: Byte) {
+
+        
+        self.stkptr -= 1;
+
+        self.stkptr = xextend(data);
+    }
+
+    fn jmp(&mut self, data: Word) {
         self.prgmctr = data;
     }
 
@@ -234,7 +239,7 @@ impl CPU {
             _ => {}
         }
     }
-    fn set_ctr(&mut self, value: u16) {
+    fn set_ctr(&mut self, value: Word) {
         self.prgmctr = value;
     }
 }
@@ -251,15 +256,15 @@ impl Default for MEMORY {
     }
 }
 // concatenates two operands into a u16 address
-fn make_address(o1: u8, o2: u8) -> u16 {
-    let address: u16 = ((o1 as u16) << 8) | o2 as u16;
+fn make_address(o1: Byte, o2: Byte) -> Word {
+    let address: Word = ((o1 as Word) << 8) | o2 as Word;
     address
 }
 
 // splits u16 into u8 tuple
-fn split_address(addr: u16) -> (u8, u8) {
-    let high_byte: u8 = (addr >> 8) as u8;
-    let low_byte: u8 = addr as u8;
+fn split_address(addr: Word) -> (Byte, Byte) {
+    let high_byte: Byte = (addr >> 8) as Byte;
+    let low_byte: Byte = addr as Byte;
 
     (high_byte, low_byte)
 }

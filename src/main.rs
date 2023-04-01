@@ -182,7 +182,7 @@ impl CPU {
             acc: Byte::default(),
             x: Byte::default(),
             y: Byte::default(),
-            stkptr: Word::default(),
+            stkptr: STACK_HIGH,
             prgmctr: Word::default(),
             status: Status::default(),
         }
@@ -209,11 +209,9 @@ impl CPU {
         self.acc = data;
     }
 
-    fn push(&mut self, memory: &MEMORY, data: Byte) {
-
-        
+    fn push(&mut self, memory: &mut MEMORY, data: Byte) {
+        memory.set_byte(self.stkptr, data);
         self.stkptr -= 1;
-
         self.stkptr = xextend(data);
     }
 
@@ -221,21 +219,22 @@ impl CPU {
         self.prgmctr = data;
     }
 
-    fn pha(&mut self) {
-        self.stkptr = xextend(self.acc);
+    fn pha(&mut self, memory: &mut MEMORY, data: Byte) {
+        self.push(memory, self.acc)
     }
 
     fn nop(&mut self) {
         self.prgmctr += 1;
     }
 
-    fn execute(&mut self, m: &MEMORY) {
+    fn execute(&mut self, m: &mut MEMORY) {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
             0xA9 => self.lda(operand1),
             0x4C => self.jmp(make_address(operand1, operand2)),
+            0x48 => self.pha( m, self.acc),
             _ => {}
         }
     }
@@ -352,7 +351,7 @@ fn main() {
                     _cpu.jmp(hex);
                 }
                 InterpreterInstr::Execute => {
-                    _cpu.execute(&_mem);
+                    _cpu.execute(&mut _mem);
                 }
                 _ => {}
             }
@@ -374,7 +373,7 @@ mod tests {
 
         mem.set_byte(0x0002, 0x55);
 
-        cpu.execute(&mem);
+        cpu.execute(&mut mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
     }
@@ -446,7 +445,7 @@ mod tests {
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
         memory.data[1] = 0x11;
-        cpu.execute(&memory);
+        cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x11);
     }
 
@@ -461,5 +460,15 @@ mod tests {
     fn test_fn_split_address() {
         let address: u16 = 0xFFAA;
         assert_eq!(split_address(address), (0xFF, 0xAA));
+    }
+
+    #[test]
+    fn test_cpu_PHA() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.acc = 0x11;
+        memory.set_byte(0x0000, 0x48);
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(0x01FF), 0x11);
     }
 }

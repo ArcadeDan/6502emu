@@ -252,23 +252,22 @@ impl CPU {
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
             0xA9 => {
-                self.lda(operand1); 
+                self.lda(operand1);
                 None
-            },
+            }
             0x4C => {
                 self.jmp(make_address(operand1, operand2));
                 None
-
-            },
+            }
             0x48 => {
-                self.pha( m);
+                self.pha(m);
                 None
-            },
+            }
             0x68 => {
                 self.pla(m);
                 Some(self.acc)
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
     fn set_ctr(&mut self, value: Word) {
@@ -539,12 +538,27 @@ mod tests {
     fn test_cpu_PLA() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
-        
+
         cpu.push(&mut memory, 0x55);
         let value: Byte = cpu.pla(&mut memory);
         assert_eq!(value, cpu.acc);
+    }
+
+    #[test]
+    fn test_cpu_stack_descent() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0x55);
+        assert_eq!(memory.get_byte(0x01FF), 0x55);
         
-    
+        cpu.push(&mut memory, 0x66);
+        assert_eq!(memory.get_byte(0x01FE), 0x66);
+
+        cpu.push(&mut memory, 0x77);
+        assert_eq!(memory.get_byte(0x01FD), 0x77);
+
+        cpu.push(&mut memory, 0x88);
+        assert_eq!(memory.get_byte(0x01FC), 0x88);
     
     }
 }

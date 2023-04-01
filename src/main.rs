@@ -43,6 +43,15 @@ enum InterpreterInstr {
     GetBytes,
     #[token("jmp")]
     Jump,
+    #[token("push")]
+    Push,
+    #[token("pull")]
+    Pull,
+    #[token("pha")]
+    PushAccumulator,
+    #[token("lda")]
+    LoadAccumulator,
+
     #[token("execute")]
     Execute,
     #[error]
@@ -224,7 +233,7 @@ impl CPU {
         self.prgmctr = data;
     }
 
-    fn pha(&mut self, memory: &mut MEMORY, data: Byte) {
+    fn pha(&mut self, memory: &mut MEMORY) {
         self.push(memory, self.acc)
     }
 
@@ -252,7 +261,7 @@ impl CPU {
 
             },
             0x48 => {
-                self.pha( m, self.acc);
+                self.pha( m);
                 None
             },
             0x68 => {
@@ -376,6 +385,22 @@ fn main() {
                 }
                 InterpreterInstr::Execute => {
                     _cpu.execute(&mut _mem);
+                }
+                InterpreterInstr::LoadAccumulator => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+
+                    _cpu.lda(byte);
+                }
+                InterpreterInstr::PushAccumulator => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.pha(&mut _mem);
+                }
+                InterpreterInstr::Push => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.push(&mut _mem, byte)
                 }
                 _ => {}
             }

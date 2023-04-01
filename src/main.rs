@@ -1,5 +1,5 @@
 use std::{
-    io::{stdin, BufRead, stdout, Write},
+    io::{stdin, stdout, BufRead, Write},
     process::exit,
 };
 
@@ -31,8 +31,6 @@ enum InterpreterInstr {
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
-    
-
 
     // instructions
     #[token("setbyte")]
@@ -176,6 +174,8 @@ struct CPU {
     status: Status,
 }
 
+
+
 #[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
@@ -209,10 +209,19 @@ impl CPU {
 
     fn lda(&mut self, data: u8) {
         self.acc = data;
+
     }
 
     fn jmp(&mut self, data: u16) {
         self.prgmctr = data;
+    }
+
+    fn pha(&mut self) {
+        self.stkptr = xextend(self.acc);
+    }
+
+    fn nop(&mut self) {
+        self.prgmctr += 1;
     }
 
     fn execute(&mut self, m: &MEMORY) {
@@ -226,7 +235,7 @@ impl CPU {
         }
     }
     fn set_ctr(&mut self, value: u16) {
-       self.stkptr = value;
+        self.prgmctr = value;
     }
 }
 
@@ -252,7 +261,7 @@ fn split_address(addr: u16) -> (u8, u8) {
     let high_byte: u8 = (addr >> 8) as u8;
     let low_byte: u8 = addr as u8;
 
-    (high_byte, low_byte) 
+    (high_byte, low_byte)
 }
 fn main() {
     let mut _cpu = CPU::default();
@@ -363,7 +372,6 @@ mod tests {
         cpu.execute(&mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
-
     }
     //
     #[test]

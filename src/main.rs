@@ -419,14 +419,13 @@ mod tests {
 
         mem.set_byte(0x0000, 0x4C);
         mem.set_byte(0x0001, 0xAA);
-
         mem.set_byte(0x0002, 0x55);
 
         cpu.execute(&mut mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
     }
-    
+
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();
@@ -551,7 +550,7 @@ mod tests {
         let mut cpu = CPU::new();
         cpu.push(&mut memory, 0x55);
         assert_eq!(memory.get_byte(0x01FF), 0x55);
-        
+
         cpu.push(&mut memory, 0x66);
         assert_eq!(memory.get_byte(0x01FE), 0x66);
 
@@ -560,7 +559,6 @@ mod tests {
 
         cpu.push(&mut memory, 0x88);
         assert_eq!(memory.get_byte(0x01FC), 0x88);
-    
     }
     #[test]
     fn test_cpu_stack_ascent() {

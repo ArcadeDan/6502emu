@@ -1,5 +1,5 @@
 use std::{
-    io::{stdin, BufRead, stdout, Write},
+    io::{stdin, stdout, BufRead, Write},
     process::exit,
 };
 
@@ -31,8 +31,6 @@ enum InterpreterInstr {
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
-    
-
 
     // instructions
     #[token("setbyte")]
@@ -176,6 +174,8 @@ struct CPU {
     status: Status,
 }
 
+
+
 #[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
@@ -209,10 +209,19 @@ impl CPU {
 
     fn lda(&mut self, data: u8) {
         self.acc = data;
+
     }
 
     fn jmp(&mut self, data: u16) {
         self.prgmctr = data;
+    }
+
+    fn pha(&mut self) {
+        self.stkptr = xextend(self.acc);
+    }
+
+    fn nop(&mut self) {
+        self.prgmctr += 1;
     }
 
     fn execute(&mut self, m: &MEMORY) {
@@ -226,7 +235,7 @@ impl CPU {
         }
     }
     fn set_ctr(&mut self, value: u16) {
-       self.stkptr = value;
+        self.prgmctr = value;
     }
 }
 
@@ -243,10 +252,17 @@ impl Default for MEMORY {
 }
 // concatenates two operands into a u16 address
 fn make_address(o1: u8, o2: u8) -> u16 {
-    let concatdata: u16 = ((o1 as u16) << 8) | o2 as u16;
-    concatdata
+    let address: u16 = ((o1 as u16) << 8) | o2 as u16;
+    address
 }
 
+// splits u16 into u8 tuple
+fn split_address(addr: u16) -> (u8, u8) {
+    let high_byte: u8 = (addr >> 8) as u8;
+    let low_byte: u8 = addr as u8;
+
+    (high_byte, low_byte)
+}
 fn main() {
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
@@ -356,9 +372,8 @@ mod tests {
         cpu.execute(&mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
-
     }
-
+    //
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();
@@ -435,5 +450,11 @@ mod tests {
         let operand1: u8 = 0xAA;
         let operand2: u8 = 0xFF;
         assert_eq!(make_address(operand1, operand2), 0xAAFF);
+    }
+
+    #[test]
+    fn test_fn_split_address() {
+        let address: u16 = 0xFFAA;
+        assert_eq!(split_address(address), (0xFF, 0xAA));
     }
 }

@@ -43,6 +43,15 @@ enum InterpreterInstr {
     GetBytes,
     #[token("jmp")]
     Jump,
+    #[token("push")]
+    Push,
+    #[token("pull")]
+    Pull,
+    #[token("pha")]
+    PushAccumulator,
+    #[token("lda")]
+    LoadAccumulator,
+
     #[token("execute")]
     Execute,
     #[error]
@@ -120,14 +129,14 @@ impl MEMORY {
         }
     }
     ///returns byte from 16bit address range
-    fn get_byte(&self, address: u16) -> u8 {
+    fn get_byte(&self, address: Word) -> Byte {
         self.data[address as usize]
     }
-    fn set_byte(&mut self, address: u16, value: u8) {
+    fn set_byte(&mut self, address: Word, value: Byte) {
         self.data[address as usize] = value;
     }
 
-    fn set_bytes(&mut self, start: u16, values: &[u8]) {
+    fn set_bytes(&mut self, start: Word, values: &[Byte]) {
         let start = start as usize;
         let end = start + values.len();
         self.data[start..end].copy_from_slice(values);
@@ -145,22 +154,6 @@ struct Status {
     d: Byte, //decimal
     b: Byte, //break
 }
-/*
-impl Iterator for Status {
-    type Item = Byte;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next()
-    }
-}
-*/
-/*
-impl Status {
-    fn getflag(self) {
-        let f: Vec<u8> = self.collect();
-
-    }
-}
-*/
 
 #[allow(dead_code)]
 struct CPU {
@@ -174,8 +167,6 @@ struct CPU {
     status: Status,
 }
 
-
-
 #[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
@@ -184,7 +175,7 @@ impl CPU {
             acc: Byte::default(),
             x: Byte::default(),
             y: Byte::default(),
-            stkptr: Word::default(),
+            stkptr: STACK_HIGH,
             prgmctr: Word::default(),
             status: Status::default(),
         }
@@ -207,34 +198,80 @@ impl CPU {
         self.status.b = Byte::default();
     }
 
-    fn lda(&mut self, data: u8) {
+    fn lda(&mut self, data: Byte) {
         self.acc = data;
-
     }
 
-    fn jmp(&mut self, data: u16) {
+    fn push(&mut self, memory: &mut MEMORY, data: Byte) {
+        memory.set_byte(self.stkptr, data);
+        self.stkptr -= 1;
+        //self.stkptr = xextend(data);
+    }
+
+    fn pull(&mut self, memory: &mut MEMORY) -> Byte {
+        self.stkptr += 1;
+        memory.get_byte(self.stkptr)
+    }
+
+    fn jmp(&mut self, data: Word) {
         self.prgmctr = data;
     }
 
-    fn pha(&mut self) {
-        self.stkptr = xextend(self.acc);
+    fn pha(&mut self, memory: &mut MEMORY) {
+        self.push(memory, self.acc)
+    }
+
+    fn pla(&mut self, memory: &mut MEMORY) -> Byte {
+        self.acc = self.pull(memory);
+        self.acc
     }
 
     fn nop(&mut self) {
         self.prgmctr += 1;
     }
 
-    fn execute(&mut self, m: &MEMORY) {
+    fn txs(&mut self) {
+        self.stkptr = xextend(self.x);
+    }
+
+    fn tsx(&mut self) {
+        self.x = split_address(self.stkptr).1;
+    }
+
+    // executes and returms an option of the data depending on the instruction
+    fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-            0xA9 => self.lda(operand1),
-            0x4C => self.jmp(make_address(operand1, operand2)),
-            _ => {}
+            0xA9 => {
+                self.lda(operand1);
+                None
+            }
+            0x4C => {
+                self.jmp(make_address(operand1, operand2));
+                None
+            }
+            0x48 => {
+                self.pha(m);
+                None
+            }
+            0x68 => {
+                self.pla(m);
+                Some(self.acc)
+            }
+            0x9A => {
+                self.txs();
+                None
+            }
+            0xBA => {
+                self.tsx();
+                None
+            }
+            _ => None,
         }
     }
-    fn set_ctr(&mut self, value: u16) {
+    fn set_ctr(&mut self, value: Word) {
         self.prgmctr = value;
     }
 }
@@ -251,15 +288,15 @@ impl Default for MEMORY {
     }
 }
 // concatenates two operands into a u16 address
-fn make_address(o1: u8, o2: u8) -> u16 {
-    let address: u16 = ((o1 as u16) << 8) | o2 as u16;
+fn make_address(o1: Byte, o2: Byte) -> Word {
+    let address: Word = ((o1 as Word) << 8) | o2 as Word;
     address
 }
 
 // splits u16 into u8 tuple
-fn split_address(addr: u16) -> (u8, u8) {
-    let high_byte: u8 = (addr >> 8) as u8;
-    let low_byte: u8 = addr as u8;
+fn split_address(addr: Word) -> (Byte, Byte) {
+    let high_byte: Byte = (addr >> 8) as Byte;
+    let low_byte: Byte = addr as Byte;
 
     (high_byte, low_byte)
 }
@@ -347,7 +384,23 @@ fn main() {
                     _cpu.jmp(hex);
                 }
                 InterpreterInstr::Execute => {
-                    _cpu.execute(&_mem);
+                    _cpu.execute(&mut _mem);
+                }
+                InterpreterInstr::LoadAccumulator => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+
+                    _cpu.lda(byte);
+                }
+                InterpreterInstr::PushAccumulator => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.pha(&mut _mem);
+                }
+                InterpreterInstr::Push => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.push(&mut _mem, byte)
                 }
                 _ => {}
             }
@@ -369,11 +422,11 @@ mod tests {
 
         mem.set_byte(0x0002, 0x55);
 
-        cpu.execute(&mem);
+        cpu.execute(&mut mem);
 
         assert_eq!(cpu.prgmctr, 0xAA55);
     }
-    //
+    
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();
@@ -441,7 +494,7 @@ mod tests {
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
         memory.data[1] = 0x11;
-        cpu.execute(&memory);
+        cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x11);
     }
 
@@ -456,5 +509,81 @@ mod tests {
     fn test_fn_split_address() {
         let address: u16 = 0xFFAA;
         assert_eq!(split_address(address), (0xFF, 0xAA));
+    }
+
+    #[test]
+    fn test_cpu_PHA() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.acc = 0x11;
+        memory.set_byte(0x0000, 0x48);
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(0x01FF), 0x11);
+    }
+    #[test]
+    fn test_util_PUSH() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0xFF);
+        assert_eq!(memory.get_byte(0x01FF), 0xFF);
+    }
+    #[test]
+    fn test_util_PULL() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0xFF);
+        let value: Byte = cpu.pull(&mut memory);
+        assert_eq!(value, 0xFF);
+    }
+    #[test]
+    fn test_cpu_PLA() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+
+        cpu.push(&mut memory, 0x55);
+        let value: Byte = cpu.pla(&mut memory);
+        assert_eq!(value, cpu.acc);
+    }
+
+    #[test]
+    fn test_cpu_stack_descent() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0x55);
+        assert_eq!(memory.get_byte(0x01FF), 0x55);
+        
+        cpu.push(&mut memory, 0x66);
+        assert_eq!(memory.get_byte(0x01FE), 0x66);
+
+        cpu.push(&mut memory, 0x77);
+        assert_eq!(memory.get_byte(0x01FD), 0x77);
+
+        cpu.push(&mut memory, 0x88);
+        assert_eq!(memory.get_byte(0x01FC), 0x88);
+    
+    }
+    #[test]
+    fn test_cpu_stack_ascent() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0x55);
+        cpu.push(&mut memory, 0x66);
+        cpu.push(&mut memory, 0x77);
+        cpu.push(&mut memory, 0x88);
+
+        assert_eq!(cpu.pull(&mut memory), 0x88);
+        assert_eq!(cpu.pull(&mut memory), 0x77);
+        assert_eq!(cpu.pull(&mut memory), 0x66);
+        assert_eq!(cpu.pull(&mut memory), 0x55);
+    }
+
+    #[test]
+    fn test_cpu_tsx() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.stkptr = 0x55;
+        memory.set_byte(0x0000, 0xBA);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x55);
     }
 }

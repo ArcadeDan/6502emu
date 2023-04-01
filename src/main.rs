@@ -471,4 +471,11 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(memory.get_byte(0x01FF), 0x11);
     }
+    #[test]
+    fn test_util_PUSH() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0xFF);
+        assert_eq!(memory.get_byte(0x01FF), 0xFF);
+    }
 }

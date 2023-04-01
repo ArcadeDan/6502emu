@@ -154,22 +154,6 @@ struct Status {
     d: Byte, //decimal
     b: Byte, //break
 }
-/*
-impl Iterator for Status {
-    type Item = Byte;
-    fn next(&mut self) -> Option<Self::Item> {
-        self.next()
-    }
-}
-*/
-/*
-impl Status {
-    fn getflag(self) {
-        let f: Vec<u8> = self.collect();
-
-    }
-}
-*/
 
 #[allow(dead_code)]
 struct CPU {
@@ -246,6 +230,15 @@ impl CPU {
         self.prgmctr += 1;
     }
 
+    fn txs(&mut self) {
+        self.stkptr = xextend(self.x);
+    }
+
+    fn tsx(&mut self) {
+        self.x = split_address(self.stkptr).1;
+    }
+
+    // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
@@ -266,6 +259,14 @@ impl CPU {
             0x68 => {
                 self.pla(m);
                 Some(self.acc)
+            }
+            0x9A => {
+                self.txs();
+                None
+            }
+            0xBA => {
+                self.tsx();
+                None
             }
             _ => None,
         }
@@ -425,7 +426,7 @@ mod tests {
 
         assert_eq!(cpu.prgmctr, 0xAA55);
     }
-    //
+    
     #[test]
     fn test_cpu_register_reset() {
         let mut cpu = CPU::new();
@@ -560,5 +561,29 @@ mod tests {
         cpu.push(&mut memory, 0x88);
         assert_eq!(memory.get_byte(0x01FC), 0x88);
     
+    }
+    #[test]
+    fn test_cpu_stack_ascent() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.push(&mut memory, 0x55);
+        cpu.push(&mut memory, 0x66);
+        cpu.push(&mut memory, 0x77);
+        cpu.push(&mut memory, 0x88);
+
+        assert_eq!(cpu.pull(&mut memory), 0x88);
+        assert_eq!(cpu.pull(&mut memory), 0x77);
+        assert_eq!(cpu.pull(&mut memory), 0x66);
+        assert_eq!(cpu.pull(&mut memory), 0x55);
+    }
+
+    #[test]
+    fn test_cpu_tsx() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.stkptr = 0x55;
+        memory.set_byte(0x0000, 0xBA);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x55);
     }
 }

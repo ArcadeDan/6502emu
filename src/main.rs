@@ -4,6 +4,7 @@ use std::{
     process::exit,
 };
 
+
 use logos::Logos;
 
 type Byte = u8;
@@ -150,16 +151,49 @@ impl MEMORY {
     }
 }
 
+
 #[allow(dead_code)]
-#[derive(Default)]
+
 struct Status {
-    v: Byte, //overflow
-    n: Byte, //negative
-    c: Byte, //carry
-    z: Byte, //zero
-    i: Byte, //interrupt
-    d: Byte, //decimal
-    b: Byte, //break
+    n: bool, //negative
+    v: bool, //overflow
+    u: bool, //unused
+    b: bool, //break
+    d: bool, //decimal
+    i: bool, //interrupt
+    z: bool, //zero
+    c: bool, //carry
+}
+
+impl Default for Status {
+    fn default() -> Self {
+        Self {
+            n: false,
+            v: false,
+            u: false,
+            b: false,
+            d: false,
+            i: false,
+            z: false,
+            c: false,
+        }
+    }
+}
+
+impl Status {
+    fn to_byte(&self) -> Byte {
+        let mut byte = 0x00;
+        byte |= (self.n as u8) << 0;
+        byte |= (self.v as u8) << 1;
+        byte |= (self.u as u8) << 2;
+        byte |= (self.b as u8) << 3;
+        byte |= (self.d as u8) << 4;
+        byte |= (self.i as u8) << 5;
+        byte |= (self.z as u8) << 6;
+        byte |= (self.c as u8) << 7;
+        byte
+       
+    }
 }
 
 #[allow(dead_code)]
@@ -198,13 +232,13 @@ impl CPU {
         self.stkptr = Word::default();
         self.prgmctr = Word::default();
 
-        self.status.v = Byte::default();
-        self.status.n = Byte::default();
-        self.status.c = Byte::default();
-        self.status.z = Byte::default();
-        self.status.i = Byte::default();
-        self.status.d = Byte::default();
-        self.status.b = Byte::default();
+        self.status.v = bool::default();
+        self.status.n = bool::default();
+        self.status.c = bool::default();
+        self.status.z = bool::default();
+        self.status.i = bool::default();
+        self.status.d = bool::default();
+        self.status.b = bool::default();
     }
 
     fn lda(&mut self, data: Byte) {
@@ -242,6 +276,23 @@ impl CPU {
         self.prgmctr += 1;
     }
 
+    fn php(&mut self, data: Byte) {
+        self.status.n = (data & 0b0000_0001) != 0;
+        self.status.v = (data & 0b0000_0010) != 0;
+        self.status.u = (data & 0b0000_0100) != 0;
+        self.status.b = (data & 0b0000_1000) != 0;
+        self.status.d = (data & 0b0001_0000) != 0;
+        self.status.i = (data & 0b0010_0000) != 0;
+        self.status.z = (data & 0b0100_0000) != 0;
+        self.status.c = (data & 0b1000_0000) != 0;
+        self.prgmctr += 1;
+        
+    }
+
+    fn plp(&mut self) -> Byte {
+        self.status.to_byte()
+    }
+
     fn txs(&mut self) {
         self.stkptr = xextend(self.x);
     }
@@ -251,7 +302,6 @@ impl CPU {
         self.x = split_address(self.stkptr).1;
     }
 
-    // init
 
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -284,6 +334,17 @@ impl CPU {
             0xBA => {
                 self.tsx();
                 None
+            }
+            0xEA => {
+                self.nop();
+                None
+            }
+            0x08 => {
+                self.php(operand1);
+                None
+            }
+            0x28 => {
+                Some(self.plp())
             }
             _ => None,
         }
@@ -454,9 +515,9 @@ mod tests {
     #[test]
     fn test_cpu_status_reset() {
         let mut cpu = CPU::new();
-        cpu.status.v = 0x7A;
+        cpu.status.v = true;
         cpu.reset();
-        assert_eq!(cpu.status.v, 0x00);
+        assert_eq!(cpu.status.v, false);
     }
     #[test]
     fn test_cpu_complete_reset() {
@@ -464,9 +525,9 @@ mod tests {
         cpu.x = 0x50;
         cpu.reset();
         assert_eq!(cpu.x, 0x00);
-        cpu.status.v = 0x7A;
+        cpu.status.v = true;
         cpu.reset();
-        assert_eq!(cpu.status.v, 0x00);
+        assert_eq!(cpu.status.v, false);
     }
 
     #[test]
@@ -603,12 +664,47 @@ mod tests {
         assert_eq!(cpu.x, 0x55);
     }
 
+    #[test]
     fn test_cpu_prgm_counter() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
-        memory.set_byte(0x0000, 0x00);
-        memory.set_byte(0x0001, 0x00);
+        memory.set_byte(0x0000, 0xEA);
         cpu.execute(&mut memory);
-        assert_eq!(cpu.prgmctr, 0x0002);
+        assert_eq!(cpu.prgmctr, 0x0001);
     }
+    #[test]
+    fn test_status_register() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        
+        cpu.status.n = true;
+        cpu.status.c = true;
+
+        let status: Byte = cpu.status.to_byte();
+        assert_eq!(status, 0x81);
+    }
+    #[test]
+    fn test_cpu_php() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0x08);
+        memory.set_byte(0x0001, 0x81);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.status.n, true);
+        assert_eq!(cpu.status.c, true);
+
+
+        
+    }
+    #[test]
+    fn test_cpu_plp() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.status.n = true;
+        cpu.status.c = true;
+        memory.set_byte(0x0000, 0x28);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.status.to_byte(), 0x81);
+    }
+
 }

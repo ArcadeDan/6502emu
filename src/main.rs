@@ -238,6 +238,8 @@ impl CPU {
         self.x = split_address(self.stkptr).1;
     }
 
+    // init
+
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
         let instruction = m.get_byte(self.prgmctr);

@@ -1,6 +1,7 @@
 use std::{
     io::{stdin, stdout, BufRead, Write},
-    process::exit, ops::Add,
+    ops::Add,
+    process::exit,
 };
 
 use logos::Logos;
@@ -109,7 +110,6 @@ enum AddressingModes {
     ZeroPage,
     Indirect,
     Absolute,
-
 }
 
 impl Default for AddressingModes {
@@ -236,8 +236,6 @@ impl CPU {
         self.acc = self.pull(memory);
         self.prgmctr += 1;
         self.acc
-
-
     }
 
     fn nop(&mut self) {
@@ -306,9 +304,6 @@ impl Default for MEMORY {
         Self::new()
     }
 }
-
-
-
 
 // concatenates two operands into a u16 address
 fn make_address(o1: Byte, o2: Byte) -> Word {

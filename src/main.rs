@@ -1,6 +1,6 @@
 use std::{
     io::{stdin, stdout, BufRead, Write},
-    process::exit,
+    process::exit, ops::Add,
 };
 
 use logos::Logos;
@@ -109,6 +109,13 @@ enum AddressingModes {
     ZeroPage,
     Indirect,
     Absolute,
+
+}
+
+impl Default for AddressingModes {
+    fn default() -> Self {
+        AddressingModes::Accumulator
+    }
 }
 
 /// A fixed-size of 65535 bytes
@@ -165,6 +172,7 @@ struct CPU {
     prgmctr: Word,
 
     status: Status,
+    mode: AddressingModes,
 }
 
 #[allow(dead_code)]
@@ -178,6 +186,7 @@ impl CPU {
             stkptr: STACK_HIGH,
             prgmctr: Word::default(),
             status: Status::default(),
+            mode: AddressingModes::default(),
         }
     }
 
@@ -199,6 +208,7 @@ impl CPU {
     }
 
     fn lda(&mut self, data: Byte) {
+        self.prgmctr += 1;
         self.acc = data;
     }
 
@@ -218,12 +228,16 @@ impl CPU {
     }
 
     fn pha(&mut self, memory: &mut MEMORY) {
+        self.prgmctr += 1;
         self.push(memory, self.acc)
     }
 
     fn pla(&mut self, memory: &mut MEMORY) -> Byte {
         self.acc = self.pull(memory);
+        self.prgmctr += 1;
         self.acc
+
+
     }
 
     fn nop(&mut self) {
@@ -235,8 +249,11 @@ impl CPU {
     }
 
     fn tsx(&mut self) {
+        self.prgmctr += 1;
         self.x = split_address(self.stkptr).1;
     }
+
+    // init
 
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -246,10 +263,12 @@ impl CPU {
         match instruction {
             0xA9 => {
                 self.lda(operand1);
+                self.mode = AddressingModes::Accumulator;
                 None
             }
             0x4C => {
                 self.jmp(make_address(operand1, operand2));
+                self.mode = AddressingModes::Absolute;
                 None
             }
             0x48 => {
@@ -287,6 +306,10 @@ impl Default for MEMORY {
         Self::new()
     }
 }
+
+
+
+
 // concatenates two operands into a u16 address
 fn make_address(o1: Byte, o2: Byte) -> Word {
     let address: Word = ((o1 as Word) << 8) | o2 as Word;
@@ -583,5 +606,14 @@ mod tests {
         memory.set_byte(0x0000, 0xBA);
         cpu.execute(&mut memory);
         assert_eq!(cpu.x, 0x55);
+    }
+
+    fn test_cpu_prgm_counter() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0x00);
+        memory.set_byte(0x0001, 0x00);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.prgmctr, 0x0002);
     }
 }

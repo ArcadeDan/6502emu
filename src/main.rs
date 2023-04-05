@@ -155,14 +155,14 @@ impl MEMORY {
 #[allow(dead_code)]
 
 struct Status {
-    n: bool, //negative
+    n: bool, //negative      true
     v: bool, //overflow
     u: bool, //unused
     b: bool, //break
     d: bool, //decimal
     i: bool, //interrupt
     z: bool, //zero
-    c: bool, //carry
+    c: bool, //carry        true
 }
 
 impl Default for Status {
@@ -492,7 +492,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_cpu_JMP() {
+    fn test_cpu_jmp() {
         let mut cpu = CPU::new();
         let mut mem = MEMORY::new();
 
@@ -528,6 +528,7 @@ mod tests {
         cpu.status.v = true;
         cpu.reset();
         assert_eq!(cpu.status.v, false);
+        
     }
 
     #[test]
@@ -567,7 +568,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_LDA() {
+    fn test_cpu_lda() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
@@ -590,7 +591,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_PHA() {
+    fn test_cpu_pha() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         cpu.acc = 0x11;
@@ -599,14 +600,14 @@ mod tests {
         assert_eq!(memory.get_byte(0x01FF), 0x11);
     }
     #[test]
-    fn test_util_PUSH() {
+    fn test_util_push() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         cpu.push(&mut memory, 0xFF);
         assert_eq!(memory.get_byte(0x01FF), 0xFF);
     }
     #[test]
-    fn test_util_PULL() {
+    fn test_util_pull() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         cpu.push(&mut memory, 0xFF);
@@ -614,7 +615,7 @@ mod tests {
         assert_eq!(value, 0xFF);
     }
     #[test]
-    fn test_cpu_PLA() {
+    fn test_cpu_pla() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
 

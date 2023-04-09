@@ -4,7 +4,7 @@ use std::{
     process::exit,
 };
 
-
+use std::fs::File;
 use logos::Logos;
 
 type Byte = u8;
@@ -30,6 +30,8 @@ enum InterpreterInstr {
     Status,
     #[token("set_ctr")]
     SetCounter,
+    #[token("dump")]
+    Dump,
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -53,7 +55,6 @@ enum InterpreterInstr {
     PushAccumulator,
     #[token("lda")]
     LoadAccumulator,
-
     #[token("execute")]
     Execute,
     #[error]
@@ -388,6 +389,13 @@ fn split_address(addr: Word) -> (Byte, Byte) {
     // big endian
     (high_byte, low_byte)
 }
+
+fn save_memory(mem: &MEMORY) {
+    let mut file = File::create("memory.bin").unwrap();
+    file.write_all(&mem.data).unwrap();
+}
+
+
 fn main() {
     // test
     let mut _cpu = CPU::default();
@@ -491,6 +499,9 @@ fn main() {
                     let value = expression.split_ascii_whitespace().nth(1).unwrap();
                     let byte = u8::from_str_radix(value, 16).unwrap();
                     _cpu.push(&mut _mem, byte)
+                }
+                InterpreterInstr::Dump => {
+                    save_memory(&_mem);
                 }
                 _ => {}
             }

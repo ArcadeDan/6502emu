@@ -4,8 +4,10 @@ use std::{
     process::exit,
 };
 
-
 use logos::Logos;
+use std::fs;
+use std::fs::File;
+use std::io::Read;
 
 type Byte = u8;
 type Word = u16;
@@ -30,6 +32,10 @@ enum InterpreterInstr {
     Status,
     #[token("set_ctr")]
     SetCounter,
+    #[token("dump")]
+    Dump,
+    #[token("load")]
+    Load,
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -53,7 +59,6 @@ enum InterpreterInstr {
     PushAccumulator,
     #[token("lda")]
     LoadAccumulator,
-
     #[token("execute")]
     Execute,
     #[error]
@@ -140,10 +145,12 @@ impl MEMORY {
     fn get_byte(&self, address: Word) -> Byte {
         self.data[address as usize]
     }
+    // sets byte at 16bit address range
     fn set_byte(&mut self, address: Word, value: Byte) {
         self.data[address as usize] = value;
     }
 
+    // soon to be deprecated
     fn set_bytes(&mut self, start: Word, values: &[Byte]) {
         let start = start as usize;
         let end = start + values.len();
@@ -151,18 +158,17 @@ impl MEMORY {
     }
 }
 
-
 #[allow(dead_code)]
 
 struct Status {
-    n: bool, //negative      true
+    n: bool, //negative
     v: bool, //overflow
     u: bool, //unused
     b: bool, //break
     d: bool, //decimal
     i: bool, //interrupt
     z: bool, //zero
-    c: bool, //carry        true
+    c: bool, //carry
 }
 
 impl Default for Status {
@@ -181,6 +187,7 @@ impl Default for Status {
 }
 
 impl Status {
+    // bitshifter's paradise
     fn to_byte(&self) -> Byte {
         let mut byte = 0x00;
         byte |= (self.n as u8) << 0;
@@ -192,7 +199,6 @@ impl Status {
         byte |= (self.z as u8) << 6;
         byte |= (self.c as u8) << 7;
         byte
-       
     }
 }
 
@@ -212,7 +218,8 @@ struct CPU {
 #[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
-        //sets ALL to 0
+        //sets registers to 0 aside from stack pointer
+        //sets stack pointer to 0x01FF
         Self {
             acc: Byte::default(),
             x: Byte::default(),
@@ -229,7 +236,7 @@ impl CPU {
         self.x = Byte::default();
         self.y = Byte::default();
 
-        self.stkptr = Word::default();
+        self.stkptr = STACK_HIGH;
         self.prgmctr = Word::default();
 
         self.status.v = bool::default();
@@ -240,12 +247,12 @@ impl CPU {
         self.status.d = bool::default();
         self.status.b = bool::default();
     }
-
+    // loads byte into accumulator
     fn lda(&mut self, data: Byte) {
         self.prgmctr += 1;
         self.acc = data;
     }
-
+    // direct
     fn push(&mut self, memory: &mut MEMORY, data: Byte) {
         memory.set_byte(self.stkptr, data);
         self.stkptr -= 1;
@@ -286,7 +293,6 @@ impl CPU {
         self.status.z = (data & 0b0100_0000) != 0;
         self.status.c = (data & 0b1000_0000) != 0;
         self.prgmctr += 1;
-        
     }
 
     fn plp(&mut self) -> Byte {
@@ -302,27 +308,30 @@ impl CPU {
         self.x = split_address(self.stkptr).1;
     }
 
-
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
         let instruction = m.get_byte(self.prgmctr);
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
+            // lda
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
                 None
             }
+            // jump
             0x4C => {
                 self.jmp(make_address(operand1, operand2));
                 self.mode = AddressingModes::Absolute;
                 None
             }
+            // pha
             0x48 => {
                 self.pha(m);
                 None
             }
+            // pla
             0x68 => {
                 self.pla(m);
                 Some(self.acc)
@@ -343,9 +352,7 @@ impl CPU {
                 self.php(operand1);
                 None
             }
-            0x28 => {
-                Some(self.plp())
-            }
+            0x28 => Some(self.plp()),
             _ => None,
         }
     }
@@ -377,9 +384,22 @@ fn split_address(addr: Word) -> (Byte, Byte) {
     let high_byte: Byte = (addr >> 8) as Byte;
     let low_byte: Byte = addr as Byte;
 
+    // big endian
     (high_byte, low_byte)
 }
+
+fn save_memory(mem: &MEMORY, file: &str) {
+    let mut file = File::create(file).unwrap();
+    file.write_all(&mem.data).unwrap();
+}
+
+fn load_memory(mem: &mut MEMORY, file: &str) {
+    let mut file = File::open(file).unwrap();
+    file.read_exact(&mut mem.data).unwrap();
+}
+
 fn main() {
+    // test
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
 
@@ -481,6 +501,12 @@ fn main() {
                     let byte = u8::from_str_radix(value, 16).unwrap();
                     _cpu.push(&mut _mem, byte)
                 }
+                InterpreterInstr::Dump => {
+                    save_memory(&_mem, "memory.dump");
+                }
+                InterpreterInstr::Load => {
+                    load_memory(&mut _mem, "memory.dump");
+                }
                 _ => {}
             }
         }
@@ -489,6 +515,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::*;
 
     #[test]
@@ -528,7 +556,6 @@ mod tests {
         cpu.status.v = true;
         cpu.reset();
         assert_eq!(cpu.status.v, false);
-        
     }
 
     #[test]
@@ -677,7 +704,7 @@ mod tests {
     fn test_status_register() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
-        
+
         cpu.status.n = true;
         cpu.status.c = true;
 
@@ -693,9 +720,6 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.status.n, true);
         assert_eq!(cpu.status.c, true);
-
-
-        
     }
     #[test]
     fn test_cpu_plp() {
@@ -708,4 +732,55 @@ mod tests {
         assert_eq!(cpu.status.to_byte(), 0x81);
     }
 
+    #[test]
+    fn test_memory_save() {
+        let mut memory = MEMORY::new();
+        memory.data[0x0000] = 0x11;
+        memory.data[0x0001] = 0x22;
+        memory.data[0x0002] = 0x33;
+        memory.data[0x0003] = 0x44;
+        memory.data[0x0004] = 0x55;
+        memory.data[0x0005] = 0x66;
+        memory.data[0x0006] = 0x77;
+        memory.data[0x0007] = 0x88;
+        memory.data[0x0008] = 0x99;
+        memory.data[0x0009] = 0xAA;
+        memory.data[0x000A] = 0xBB;
+        memory.data[0x000B] = 0xCC;
+        memory.data[0x000C] = 0xDD;
+        memory.data[0x000D] = 0xEE;
+        memory.data[0x000E] = 0xFF;
+        save_memory(&memory, "test.dump");
+        
+        let path = Path::new("test.dump");
+        assert!(path.exists());
+
+        fs::remove_file("test.dump").unwrap();
+    }
+    #[test]
+    fn test_memory_load() {
+        let mut memory = MEMORY::new();
+        memory.data[0x0000] = 0x11;
+        memory.data[0x0001] = 0x22;
+        memory.data[0x0002] = 0x33;
+        memory.data[0x0003] = 0x44;
+        memory.data[0x0004] = 0x55;
+        memory.data[0x0005] = 0x66;
+        memory.data[0x0006] = 0x77;
+        memory.data[0x0007] = 0x88;
+        memory.data[0x0008] = 0x99;
+        memory.data[0x0009] = 0xAA;
+        memory.data[0x000A] = 0xBB;
+        memory.data[0x000B] = 0xCC;
+        memory.data[0x000C] = 0xDD;
+        memory.data[0x000D] = 0xEE;
+        memory.data[0x000E] = 0xFF;
+        save_memory(&memory, "test.dump");
+        
+        let mut memory2 = MEMORY::new();
+        load_memory(&mut memory2, "test.dump");
+        assert_eq!(memory.data, memory2.data);
+
+        fs::remove_file("test.dump").unwrap();
+    }
 }

@@ -751,10 +751,36 @@ mod tests {
         memory.data[0x000D] = 0xEE;
         memory.data[0x000E] = 0xFF;
         save_memory(&memory, "test.dump");
-        //check if the file exists after save
+        
         let path = Path::new("test.dump");
         assert!(path.exists());
-        // then remove the file
+
+        fs::remove_file("test.dump").unwrap();
+    }
+    #[test]
+    fn test_memory_load() {
+        let mut memory = MEMORY::new();
+        memory.data[0x0000] = 0x11;
+        memory.data[0x0001] = 0x22;
+        memory.data[0x0002] = 0x33;
+        memory.data[0x0003] = 0x44;
+        memory.data[0x0004] = 0x55;
+        memory.data[0x0005] = 0x66;
+        memory.data[0x0006] = 0x77;
+        memory.data[0x0007] = 0x88;
+        memory.data[0x0008] = 0x99;
+        memory.data[0x0009] = 0xAA;
+        memory.data[0x000A] = 0xBB;
+        memory.data[0x000B] = 0xCC;
+        memory.data[0x000C] = 0xDD;
+        memory.data[0x000D] = 0xEE;
+        memory.data[0x000E] = 0xFF;
+        save_memory(&memory, "test.dump");
+        
+        let mut memory2 = MEMORY::new();
+        load_memory(&mut memory2, "test.dump");
+        assert_eq!(memory.data, memory2.data);
+
         fs::remove_file("test.dump").unwrap();
     }
 }

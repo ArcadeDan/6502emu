@@ -5,6 +5,7 @@ use std::{
 };
 
 use std::fs::File;
+use std::io::Read;
 use logos::Logos;
 
 type Byte = u8;
@@ -32,6 +33,8 @@ enum InterpreterInstr {
     SetCounter,
     #[token("dump")]
     Dump,
+    #[token("load")]
+    Load,
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -391,9 +394,15 @@ fn split_address(addr: Word) -> (Byte, Byte) {
 }
 
 fn save_memory(mem: &MEMORY) {
-    let mut file = File::create("memory.bin").unwrap();
+    let mut file = File::create("memory.dump").unwrap();
     file.write_all(&mem.data).unwrap();
 }
+
+fn load_memory(mem: &mut MEMORY) {
+    let mut file = File::open("memory.dump").unwrap();
+    file.read_exact(&mut mem.data).unwrap();
+}
+
 
 
 fn main() {
@@ -502,6 +511,9 @@ fn main() {
                 }
                 InterpreterInstr::Dump => {
                     save_memory(&_mem);
+                }
+                InterpreterInstr::Load => {
+                    load_memory(&mut _mem);
                 }
                 _ => {}
             }

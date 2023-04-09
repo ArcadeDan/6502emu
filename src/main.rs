@@ -386,6 +386,38 @@ impl CPU {
                 None
             }
             0x28 => Some(self.plp()),
+            0xAA => {
+                self.tax();
+                None
+            }
+            0x8A => {
+                self.txa();
+                None
+            }
+            0xCA => {
+                self.dex();
+                None
+            }
+            0xE8 => {
+                self.inx();
+                None
+            }
+            0xA8 => {
+                self.tay();
+                None
+            }
+            0x98 => {
+                self.tya();
+                None
+            }
+            0x88 => {
+                self.dey();
+                None
+            }
+            0xC8 => {
+                self.iny();
+                None
+            }
             _ => None,
         }
     }

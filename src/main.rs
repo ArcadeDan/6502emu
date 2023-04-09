@@ -858,4 +858,79 @@ mod tests {
 
         fs::remove_file("test.dump").unwrap();
     }
+    
+    #[test]
+    fn test_cpu_tax() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.acc = 0x55;
+        memory.set_byte(0x0000, 0xAA);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x55);
+    }
+    #[test]
+    fn test_cpu_txa() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x55;
+        memory.set_byte(0x0000, 0x8A);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x55);
+    }
+    #[test]
+    fn test_cpu_tay() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.acc = 0x55;
+        memory.set_byte(0x0000, 0xA8);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.y, 0x55);
+    }
+    #[test]
+    fn test_cpu_tya() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x55;
+        memory.set_byte(0x0000, 0x98);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x55);
+    }
+    #[test]
+    fn test_cpu_inx() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x55;
+        memory.set_byte(0x0000, 0xE8);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x56);
+    }
+    #[test]
+    fn test_cpu_iny() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x55;
+        memory.set_byte(0x0000, 0xC8);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.y, 0x56);
+    }
+    #[test]
+    fn test_cpu_dex() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x55;
+        memory.set_byte(0x0000, 0xCA);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x54);
+    }
+    #[test]
+    fn test_cpu_dey() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x55;
+        memory.set_byte(0x0000, 0x88);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.y, 0x54);
+    }
+    
+
 }

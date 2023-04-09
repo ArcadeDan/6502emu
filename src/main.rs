@@ -270,12 +270,12 @@ impl CPU {
     fn jmp(&mut self, data: Word) {
         self.prgmctr = data;
     }
-
+    // push accumulator
     fn pha(&mut self, memory: &mut MEMORY) {
         self.prgmctr += 1;
         self.push(memory, self.acc)
     }
-
+    // pull accumulator
     fn pla(&mut self, memory: &mut MEMORY) -> Byte {
         self.acc = self.pull(memory);
         self.prgmctr += 1;
@@ -286,6 +286,7 @@ impl CPU {
         self.prgmctr += 1;
     }
 
+    // push processor status
     fn php(&mut self, data: Byte) {
         self.status.n = (data & 0b0000_0001) != 0;
         self.status.v = (data & 0b0000_0010) != 0;
@@ -297,19 +298,61 @@ impl CPU {
         self.status.c = (data & 0b1000_0000) != 0;
         self.prgmctr += 1;
     }
-
+    // pull processor status
     fn plp(&mut self) -> Byte {
         self.status.to_byte()
     }
-
+    // transfer accumulator to x
     fn txs(&mut self) {
         self.stkptr = xextend(self.x);
     }
-
+    // transfer stack pointer to x
     fn tsx(&mut self) {
         self.prgmctr += 1;
         self.x = split_address(self.stkptr).1;
     }
+    // transfer accumulator to x
+    fn tax(&mut self) {
+        self.prgmctr += 1;
+        self.x = self.acc;
+    }
+    // transfer x to accumulator
+    fn txa(&mut self) {
+        self.prgmctr += 1;
+        self.acc = self.x;
+    }
+    // transfer y to accumulator
+    fn tya(&mut self) {
+        self.prgmctr += 1;
+        self.acc = self.y;
+    }
+    // transfer accumulator to y
+    fn tay(&mut self) {
+        self.prgmctr += 1;
+        self.y = self.acc;
+    }
+    // decrement y
+    fn dey(&mut self) {
+        self.prgmctr += 1;
+        self.y -= 1;
+    }
+    // increment y
+    fn iny(&mut self) {
+        self.prgmctr += 1;
+        self.y += 1;
+    }
+    // increment x
+    fn inx(&mut self) {
+        self.prgmctr += 1;
+        self.x += 1;
+    }
+    // decrement x
+    fn dex(&mut self) {
+        self.prgmctr += 1;
+        self.x -= 1;
+    }
+
+
 
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -361,6 +404,38 @@ impl CPU {
             }
             // plp
             0x28 => Some(self.plp()),
+            0xAA => {
+                self.tax();
+                None
+            }
+            0x8A => {
+                self.txa();
+                None
+            }
+            0xCA => {
+                self.dex();
+                None
+            }
+            0xE8 => {
+                self.inx();
+                None
+            }
+            0xA8 => {
+                self.tay();
+                None
+            }
+            0x98 => {
+                self.tya();
+                None
+            }
+            0x88 => {
+                self.dey();
+                None
+            }
+            0xC8 => {
+                self.iny();
+                None
+            }
             _ => None,
         }
     }
@@ -792,4 +867,79 @@ mod tests {
 
         fs::remove_file("test.dump").unwrap();
     }
+    
+    #[test]
+    fn test_cpu_tax() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.acc = 0x55;
+        memory.set_byte(0x0000, 0xAA);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x55);
+    }
+    #[test]
+    fn test_cpu_txa() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x55;
+        memory.set_byte(0x0000, 0x8A);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x55);
+    }
+    #[test]
+    fn test_cpu_tay() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.acc = 0x55;
+        memory.set_byte(0x0000, 0xA8);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.y, 0x55);
+    }
+    #[test]
+    fn test_cpu_tya() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x55;
+        memory.set_byte(0x0000, 0x98);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x55);
+    }
+    #[test]
+    fn test_cpu_inx() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x55;
+        memory.set_byte(0x0000, 0xE8);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x56);
+    }
+    #[test]
+    fn test_cpu_iny() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x55;
+        memory.set_byte(0x0000, 0xC8);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.y, 0x56);
+    }
+    #[test]
+    fn test_cpu_dex() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x55;
+        memory.set_byte(0x0000, 0xCA);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.x, 0x54);
+    }
+    #[test]
+    fn test_cpu_dey() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x55;
+        memory.set_byte(0x0000, 0x88);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.y, 0x54);
+    }
+    
+
 }

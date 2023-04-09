@@ -267,12 +267,12 @@ impl CPU {
     fn jmp(&mut self, data: Word) {
         self.prgmctr = data;
     }
-
+    // push accumulator
     fn pha(&mut self, memory: &mut MEMORY) {
         self.prgmctr += 1;
         self.push(memory, self.acc)
     }
-
+    // pull accumulator
     fn pla(&mut self, memory: &mut MEMORY) -> Byte {
         self.acc = self.pull(memory);
         self.prgmctr += 1;
@@ -283,6 +283,7 @@ impl CPU {
         self.prgmctr += 1;
     }
 
+    // push processor status
     fn php(&mut self, data: Byte) {
         self.status.n = (data & 0b0000_0001) != 0;
         self.status.v = (data & 0b0000_0010) != 0;
@@ -294,19 +295,51 @@ impl CPU {
         self.status.c = (data & 0b1000_0000) != 0;
         self.prgmctr += 1;
     }
-
+    // pull processor status
     fn plp(&mut self) -> Byte {
         self.status.to_byte()
     }
-
+    // transfer accumulator to x
     fn txs(&mut self) {
         self.stkptr = xextend(self.x);
     }
-
+    // transfer stack pointer to x
     fn tsx(&mut self) {
         self.prgmctr += 1;
         self.x = split_address(self.stkptr).1;
     }
+    // transfer accumulator to x
+    fn tax(&mut self) {
+        self.prgmctr += 1;
+        self.x = self.acc;
+    }
+    // transfer x to accumulator
+    fn txa(&mut self) {
+        self.prgmctr += 1;
+        self.acc = self.x;
+    }
+    // transfer y to accumulator
+    fn tya(&mut self) {
+        self.prgmctr += 1;
+        self.acc = self.y;
+    }
+    // transfer accumulator to y
+    fn tay(&mut self) {
+        self.prgmctr += 1;
+        self.y = self.acc;
+    }
+    // decrement y
+    fn dey(&mut self) {
+        self.prgmctr += 1;
+        self.y -= 1;
+    }
+    // increment y
+    fn iny(&mut self) {
+        self.prgmctr += 1;
+        self.y += 1;
+    }
+
+
 
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {

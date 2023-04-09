@@ -249,7 +249,7 @@ impl CPU {
     }
     // loads byte into accumulator
     fn lda(&mut self, data: Byte) {
-        self.prgmctr += 1;
+        self.prgmctr += 2;
         self.acc = data;
         self.status.n = true;
         self.status.z = true;
@@ -281,7 +281,7 @@ impl CPU {
         self.prgmctr += 1;
         self.acc
     }
-
+    // no operation
     fn nop(&mut self) {
         self.prgmctr += 1;
     }
@@ -404,38 +404,47 @@ impl CPU {
             }
             // plp
             0x28 => Some(self.plp()),
+            // tax
             0xAA => {
                 self.tax();
                 None
             }
+            // txa
             0x8A => {
                 self.txa();
                 None
             }
+            // dex
             0xCA => {
                 self.dex();
                 None
             }
+            // inx
             0xE8 => {
                 self.inx();
                 None
             }
+            // tay
             0xA8 => {
                 self.tay();
                 None
             }
+            // tya
             0x98 => {
                 self.tya();
                 None
             }
+            // dey
             0x88 => {
                 self.dey();
                 None
             }
+            // iny
             0xC8 => {
                 self.iny();
                 None
             }
+        
             _ => None,
         }
     }
@@ -576,8 +585,8 @@ fn main() {
                     _cpu.lda(byte);
                 }
                 InterpreterInstr::PushAccumulator => {
-                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
-                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    //let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    
                     _cpu.pha(&mut _mem);
                 }
                 InterpreterInstr::Push => {
@@ -786,7 +795,7 @@ mod tests {
     }
     #[test]
     fn test_status_register() {
-        let mut memory = MEMORY::new();
+        
         let mut cpu = CPU::new();
 
         cpu.status.n = true;

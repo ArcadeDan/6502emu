@@ -4,9 +4,10 @@ use std::{
     process::exit,
 };
 
+use logos::Logos;
+use std::fs;
 use std::fs::File;
 use std::io::Read;
-use logos::Logos;
 
 type Byte = u8;
 type Word = u16;
@@ -157,18 +158,17 @@ impl MEMORY {
     }
 }
 
-
 #[allow(dead_code)]
 
 struct Status {
-    n: bool, //negative     
+    n: bool, //negative
     v: bool, //overflow
     u: bool, //unused
     b: bool, //break
     d: bool, //decimal
     i: bool, //interrupt
     z: bool, //zero
-    c: bool, //carry       
+    c: bool, //carry
 }
 
 impl Default for Status {
@@ -199,7 +199,6 @@ impl Status {
         byte |= (self.z as u8) << 6;
         byte |= (self.c as u8) << 7;
         byte
-       
     }
 }
 
@@ -237,7 +236,7 @@ impl CPU {
         self.x = Byte::default();
         self.y = Byte::default();
 
-        self.stkptr = Word::default();
+        self.stkptr = STACK_HIGH;
         self.prgmctr = Word::default();
 
         self.status.v = bool::default();
@@ -253,7 +252,7 @@ impl CPU {
         self.prgmctr += 1;
         self.acc = data;
     }
-    // direct 
+    // direct
     fn push(&mut self, memory: &mut MEMORY, data: Byte) {
         memory.set_byte(self.stkptr, data);
         self.stkptr -= 1;
@@ -294,7 +293,6 @@ impl CPU {
         self.status.z = (data & 0b0100_0000) != 0;
         self.status.c = (data & 0b1000_0000) != 0;
         self.prgmctr += 1;
-        
     }
 
     fn plp(&mut self) -> Byte {
@@ -309,7 +307,6 @@ impl CPU {
         self.prgmctr += 1;
         self.x = split_address(self.stkptr).1;
     }
-
 
     // executes and returms an option of the data depending on the instruction
     fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -355,9 +352,7 @@ impl CPU {
                 self.php(operand1);
                 None
             }
-            0x28 => {
-                Some(self.plp())
-            }
+            0x28 => Some(self.plp()),
             _ => None,
         }
     }
@@ -403,14 +398,11 @@ fn load_memory(mem: &mut MEMORY, file: &str) {
     file.read_exact(&mut mem.data).unwrap();
 }
 
-
-
 fn main() {
     // test
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
-    
-   
+
     // REPL
     for line in stdin().lock().lines() {
         print!("> ");
@@ -513,7 +505,7 @@ fn main() {
                     save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
-                    load_memory(&mut _mem);
+                    load_memory(&mut _mem, "memory.dump");
                 }
                 _ => {}
             }
@@ -523,6 +515,8 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use std::path::Path;
+
     use super::*;
 
     #[test]
@@ -562,7 +556,6 @@ mod tests {
         cpu.status.v = true;
         cpu.reset();
         assert_eq!(cpu.status.v, false);
-        
     }
 
     #[test]
@@ -711,7 +704,7 @@ mod tests {
     fn test_status_register() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
-        
+
         cpu.status.n = true;
         cpu.status.c = true;
 
@@ -727,9 +720,6 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.status.n, true);
         assert_eq!(cpu.status.c, true);
-
-
-        
     }
     #[test]
     fn test_cpu_plp() {
@@ -760,7 +750,11 @@ mod tests {
         memory.data[0x000C] = 0xDD;
         memory.data[0x000D] = 0xEE;
         memory.data[0x000E] = 0xFF;
-        save_memory(&memory);
+        save_memory(&memory, "test.dump");
+        //check if the file exists after save
+        let path = Path::new("test.dump");
+        assert!(path.exists());
+        // then remove the file
+        fs::remove_file("test.dump").unwrap();
     }
-
 }

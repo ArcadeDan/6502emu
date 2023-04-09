@@ -393,13 +393,13 @@ fn split_address(addr: Word) -> (Byte, Byte) {
     (high_byte, low_byte)
 }
 
-fn save_memory(mem: &MEMORY) {
-    let mut file = File::create("memory.dump").unwrap();
+fn save_memory(mem: &MEMORY, file: &str) {
+    let mut file = File::create(file).unwrap();
     file.write_all(&mem.data).unwrap();
 }
 
-fn load_memory(mem: &mut MEMORY) {
-    let mut file = File::open("memory.dump").unwrap();
+fn load_memory(mem: &mut MEMORY, file: &str) {
+    let mut file = File::open(file).unwrap();
     file.read_exact(&mut mem.data).unwrap();
 }
 
@@ -510,7 +510,7 @@ fn main() {
                     _cpu.push(&mut _mem, byte)
                 }
                 InterpreterInstr::Dump => {
-                    save_memory(&_mem);
+                    save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
                     load_memory(&mut _mem);
@@ -740,6 +740,27 @@ mod tests {
         memory.set_byte(0x0000, 0x28);
         cpu.execute(&mut memory);
         assert_eq!(cpu.status.to_byte(), 0x81);
+    }
+
+    #[test]
+    fn test_memory_save() {
+        let mut memory = MEMORY::new();
+        memory.data[0x0000] = 0x11;
+        memory.data[0x0001] = 0x22;
+        memory.data[0x0002] = 0x33;
+        memory.data[0x0003] = 0x44;
+        memory.data[0x0004] = 0x55;
+        memory.data[0x0005] = 0x66;
+        memory.data[0x0006] = 0x77;
+        memory.data[0x0007] = 0x88;
+        memory.data[0x0008] = 0x99;
+        memory.data[0x0009] = 0xAA;
+        memory.data[0x000A] = 0xBB;
+        memory.data[0x000B] = 0xCC;
+        memory.data[0x000C] = 0xDD;
+        memory.data[0x000D] = 0xEE;
+        memory.data[0x000E] = 0xFF;
+        save_memory(&memory);
     }
 
 }

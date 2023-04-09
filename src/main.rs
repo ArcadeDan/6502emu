@@ -338,6 +338,16 @@ impl CPU {
         self.prgmctr += 1;
         self.y += 1;
     }
+    // increment x
+    fn inx(&mut self) {
+        self.prgmctr += 1;
+        self.x += 1;
+    }
+    // decrement x
+    fn dex(&mut self) {
+        self.prgmctr += 1;
+        self.x -= 1;
+    }
 
 
 

@@ -140,10 +140,12 @@ impl MEMORY {
     fn get_byte(&self, address: Word) -> Byte {
         self.data[address as usize]
     }
+    // sets byte at 16bit address range
     fn set_byte(&mut self, address: Word, value: Byte) {
         self.data[address as usize] = value;
     }
 
+    // soon to be deprecated
     fn set_bytes(&mut self, start: Word, values: &[Byte]) {
         let start = start as usize;
         let end = start + values.len();
@@ -155,14 +157,14 @@ impl MEMORY {
 #[allow(dead_code)]
 
 struct Status {
-    n: bool, //negative      true
+    n: bool, //negative     
     v: bool, //overflow
     u: bool, //unused
     b: bool, //break
     d: bool, //decimal
     i: bool, //interrupt
     z: bool, //zero
-    c: bool, //carry        true
+    c: bool, //carry       
 }
 
 impl Default for Status {
@@ -181,6 +183,7 @@ impl Default for Status {
 }
 
 impl Status {
+    // bitshifter's paradise
     fn to_byte(&self) -> Byte {
         let mut byte = 0x00;
         byte |= (self.n as u8) << 0;
@@ -212,7 +215,8 @@ struct CPU {
 #[allow(dead_code)]
 impl CPU {
     fn new() -> Self {
-        //sets ALL to 0
+        //sets registers to 0 aside from stack pointer
+        //sets stack pointer to 0x01FF
         Self {
             acc: Byte::default(),
             x: Byte::default(),
@@ -240,12 +244,12 @@ impl CPU {
         self.status.d = bool::default();
         self.status.b = bool::default();
     }
-
+    // loads byte into accumulator
     fn lda(&mut self, data: Byte) {
         self.prgmctr += 1;
         self.acc = data;
     }
-
+    // direct 
     fn push(&mut self, memory: &mut MEMORY, data: Byte) {
         memory.set_byte(self.stkptr, data);
         self.stkptr -= 1;
@@ -309,20 +313,24 @@ impl CPU {
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
+            // lda
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
                 None
             }
+            // jump
             0x4C => {
                 self.jmp(make_address(operand1, operand2));
                 self.mode = AddressingModes::Absolute;
                 None
             }
+            // pha
             0x48 => {
                 self.pha(m);
                 None
             }
+            // pla
             0x68 => {
                 self.pla(m);
                 Some(self.acc)
@@ -377,12 +385,15 @@ fn split_address(addr: Word) -> (Byte, Byte) {
     let high_byte: Byte = (addr >> 8) as Byte;
     let low_byte: Byte = addr as Byte;
 
+    // big endian
     (high_byte, low_byte)
 }
 fn main() {
+    // test
     let mut _cpu = CPU::default();
     let mut _mem = MEMORY::default();
-
+    
+   
     // REPL
     for line in stdin().lock().lines() {
         print!("> ");

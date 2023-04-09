@@ -236,7 +236,7 @@ impl CPU {
         self.x = Byte::default();
         self.y = Byte::default();
 
-        self.stkptr = STACK_HIGH;
+        self.stkptr = STACK_HIGH; // all for the stack !!!
         self.prgmctr = Word::default();
 
         self.status.v = bool::default();
@@ -251,6 +251,9 @@ impl CPU {
     fn lda(&mut self, data: Byte) {
         self.prgmctr += 1;
         self.acc = data;
+        self.status.n = true;
+        self.status.z = true;
+        
     }
     // direct
     fn push(&mut self, memory: &mut MEMORY, data: Byte) {
@@ -336,22 +339,27 @@ impl CPU {
                 self.pla(m);
                 Some(self.acc)
             }
+            // txs
             0x9A => {
                 self.txs();
                 None
             }
+            // tsx
             0xBA => {
                 self.tsx();
                 None
             }
+            // nop
             0xEA => {
                 self.nop();
                 None
             }
+            // php
             0x08 => {
                 self.php(operand1);
                 None
             }
+            // plp
             0x28 => Some(self.plp()),
             _ => None,
         }
@@ -447,6 +455,7 @@ fn main() {
 
                     println!("{}", _mem.get_byte(hex));
                 }
+                // TODO: decrepate this
                 InterpreterInstr::GetBytes => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -463,7 +472,7 @@ fn main() {
                     _mem.set_byte(hex, byte);
                 }
 
-                // TODO: fix this
+                // TODO: decrepate this
                 InterpreterInstr::SetBytes => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();

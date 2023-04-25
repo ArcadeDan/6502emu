@@ -248,6 +248,24 @@ impl CPU {
         self.status.b = true;
     }
 
+    // load x
+    pub fn ldx(&mut self, data: u8) {
+        self.status.n = true;
+        self.status.z = true;
+        self.x = data;
+        self.prgmctr += 2;
+
+    }
+    // load y
+    pub fn ldy(&mut self, data: u8) {
+        self.status.n = true;
+        self.status.z = true;
+        self.y = data;
+        self.prgmctr += 2;
+    }
+
+    pub fn stx(&mut self, data: Byte) {}
+
     // executes and returms an option of the data depending on the instruction
     pub fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
         let instruction = m.get_byte(self.prgmctr);
@@ -258,6 +276,18 @@ impl CPU {
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
+                None
+            }
+            // ldx
+            0xA2 => {
+                self.ldx(operand1);
+                self.mode = AddressingModes::Immediate;
+                None
+            }
+            // ldy
+            0xA0 => {
+                self.ldy(operand1);
+                self.mode = AddressingModes::Immediate;
                 None
             }
             // jump

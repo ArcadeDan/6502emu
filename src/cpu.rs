@@ -242,6 +242,11 @@ impl CPU {
         self.prgmctr += 1;
         self.x -= 1;
     }
+    // brk
+    pub fn brk(&mut self) {
+        self.prgmctr += 1;
+        self.status.b = true;
+    }
 
     // executes and returms an option of the data depending on the instruction
     pub fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -333,7 +338,12 @@ impl CPU {
                 self.iny();
                 None
             }
-        
+            
+            0x00 => {
+                self.brk();
+                None
+            }
+
             _ => None,
         }
     }

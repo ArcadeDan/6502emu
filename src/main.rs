@@ -528,4 +528,13 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.y, 0x54);
     }
+
+    #[test]
+    fn test_cpu_brk() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0x00);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.prgmctr, 0x01);
+    }
 }

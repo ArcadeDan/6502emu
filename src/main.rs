@@ -560,4 +560,13 @@ mod tests {
         
         assert_eq!(memory.get_byte(0x0000), 0xFF);
     }
+    #[test]
+    fn test_cpu_sta() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0x85);
+        cpu.acc = 0x14;
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(0x0000), 0x14);
+    }
 }

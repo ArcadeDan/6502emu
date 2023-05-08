@@ -274,6 +274,9 @@ impl CPU {
         memory.set_byte(self.prgmctr, self.y);
         self.prgmctr += 2;
     }
+    pub fn sta(&mut self, memory: &mut MEMORY) {
+        memory.set_byte(self.prgmctr, self.acc);
+    }
     
 
     // executes and returms an option of the data depending on the instruction
@@ -387,6 +390,11 @@ impl CPU {
                 None
             }
             
+            0x85 => {
+                self.sta(m);
+                None
+            }
+
             0x00 => {
                 self.brk();
                 None

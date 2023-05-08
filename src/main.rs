@@ -537,4 +537,15 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.prgmctr, 0x01);
     }
+    #[test]
+    fn test_cpu_stx() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+
+        memory.set_byte(0x0000, 0x86);
+        cpu.x = 0xAA;
+        cpu.execute(&mut memory);
+        
+        assert_eq!(memory.get_byte(0x0000), 0xAA);
+    }
 }

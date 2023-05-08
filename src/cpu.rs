@@ -268,6 +268,12 @@ impl CPU {
         memory.set_byte(self.prgmctr, self.x);
         self.prgmctr += 2;
     }
+
+    //store y 0x84
+    pub fn sty(&mut self, memory: &mut MEMORY) {
+        memory.set_byte(self.prgmctr, self.y);
+        self.prgmctr += 2;
+    }
     
 
     // executes and returms an option of the data depending on the instruction
@@ -374,6 +380,10 @@ impl CPU {
             }
             0x86 => {
                 self.stx(m);
+                None
+            }
+            0x84 => {
+                self.sty(m);
                 None
             }
             

@@ -548,4 +548,16 @@ mod tests {
         
         assert_eq!(memory.get_byte(0x0000), 0xAA);
     }
+
+    #[test]
+    fn test_cpu_sty() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+
+        memory.set_byte(0x0000, 0x84);
+        cpu.y = 0xFF;
+        cpu.execute(&mut memory);
+        
+        assert_eq!(memory.get_byte(0x0000), 0xFF);
+    }
 }

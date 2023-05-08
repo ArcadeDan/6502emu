@@ -242,6 +242,42 @@ impl CPU {
         self.prgmctr += 1;
         self.x -= 1;
     }
+    // brk
+    pub fn brk(&mut self) {
+        self.prgmctr += 1;
+        self.status.b = true;
+    }
+
+    // load x
+    pub fn ldx(&mut self, data: u8) {
+        self.status.n = true;
+        self.status.z = true;
+        self.x = data;
+        self.prgmctr += 2;
+
+    }
+    // load y
+    pub fn ldy(&mut self, data: u8) {
+        self.status.n = true;
+        self.status.z = true;
+        self.y = data;
+        self.prgmctr += 2;
+    }
+    // store x 0x86
+    pub fn stx(&mut self, memory: &mut MEMORY) {
+        memory.set_byte(self.prgmctr, self.x);
+        self.prgmctr += 2;
+    }
+
+    //store y 0x84
+    pub fn sty(&mut self, memory: &mut MEMORY) {
+        memory.set_byte(self.prgmctr, self.y);
+        self.prgmctr += 2;
+    }
+    pub fn sta(&mut self, memory: &mut MEMORY) {
+        memory.set_byte(self.prgmctr, self.acc);
+    }
+    
 
     // executes and returms an option of the data depending on the instruction
     pub fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -253,6 +289,18 @@ impl CPU {
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
+                None
+            }
+            // ldx
+            0xA2 => {
+                self.ldx(operand1);
+                self.mode = AddressingModes::Immediate;
+                None
+            }
+            // ldy
+            0xA0 => {
+                self.ldy(operand1);
+                self.mode = AddressingModes::Immediate;
                 None
             }
             // jump
@@ -333,7 +381,25 @@ impl CPU {
                 self.iny();
                 None
             }
-        
+            0x86 => {
+                self.stx(m);
+                None
+            }
+            0x84 => {
+                self.sty(m);
+                None
+            }
+            
+            0x85 => {
+                self.sta(m);
+                None
+            }
+
+            0x00 => {
+                self.brk();
+                None
+            }
+
             _ => None,
         }
     }

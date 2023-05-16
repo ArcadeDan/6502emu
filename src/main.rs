@@ -1,7 +1,7 @@
 use std::{
     io::{stdin, stdout, BufRead, Write},
     ops::Add,
-    process::exit,
+    process::exit, alloc::System,
 };
 
 use crate::cpu::{CPU, MEMORY, save_memory, load_memory, xextend, make_address, split_address};
@@ -90,6 +90,7 @@ fn main() {
         for instr in instructions.iter() {
             match instr.0 {
                 InterpreterInstr::Registers => {
+                    print!("\x1B[2J");
                     println!("acc: {:?}", _cpu.acc);
                     println!("x: {:?}", _cpu.x);
                     println!("y: {:?}", _cpu.y);
@@ -101,6 +102,7 @@ fn main() {
                     _mem.reset();
                 }
                 InterpreterInstr::Status => {
+                    print!("\x1B[2J");
                     println!("v: {:?}", _cpu.status.v);
                     println!("n: {:?}", _cpu.status.n);
                     println!("c: {:?}", _cpu.status.c);

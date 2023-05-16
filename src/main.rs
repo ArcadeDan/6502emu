@@ -532,4 +532,45 @@ mod tests {
     // test the cpu so it resets the stack pointer
     
 
+
+    #[test]
+    fn test_cpu_brk() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0x00);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.prgmctr, 0x01);
+    }
+    #[test]
+    fn test_cpu_stx() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+
+        memory.set_byte(0x0000, 0x86);
+        cpu.x = 0xAA;
+        cpu.execute(&mut memory);
+        
+        assert_eq!(memory.get_byte(0x0000), 0xAA);
+    }
+
+    #[test]
+    fn test_cpu_sty() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+
+        memory.set_byte(0x0000, 0x84);
+        cpu.y = 0xFF;
+        cpu.execute(&mut memory);
+        
+        assert_eq!(memory.get_byte(0x0000), 0xFF);
+    }
+    #[test]
+    fn test_cpu_sta() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0x85);
+        cpu.acc = 0x14;
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(0x0000), 0x14);
+    }
 }

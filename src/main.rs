@@ -528,4 +528,8 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.y, 0x54);
     }
+    
+    // test the cpu so it resets the stack pointer
+    
+
 }

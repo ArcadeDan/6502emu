@@ -180,7 +180,10 @@ fn main() {
                     save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
-                    load_memory(&mut _mem, "memory.dump");
+                    let mut name = String::new();
+                    println!("please input the file in the root directory:");
+                    std::io::stdin().read_line(&mut name);
+                    load_memory(&mut _mem, &name);
                 }
                 _ => {}
             }

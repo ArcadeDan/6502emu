@@ -1,10 +1,11 @@
 use std::{
+    alloc::System,
     io::{stdin, stdout, BufRead, Write},
     ops::Add,
-    process::exit, alloc::System,
+    process::exit,
 };
 
-use crate::cpu::{CPU, MEMORY, save_memory, load_memory, xextend, make_address, split_address};
+use crate::cpu::{load_memory, make_address, save_memory, split_address, xextend, CPU, MEMORY};
 
 use logos::Logos;
 use std::fs;
@@ -15,6 +16,7 @@ type Byte = u8;
 type Word = u16;
 
 mod cpu;
+mod instruction;
 
 const ADDRESS_LOW: u16 = 0x0000;
 const ADDRESS_HIGH: u16 = 0xFFFF;
@@ -533,10 +535,8 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.y, 0x54);
     }
-    
-    // test the cpu so it resets the stack pointer
-    
 
+    // test the cpu so it resets the stack pointer
 
     #[test]
     fn test_cpu_brk() {
@@ -554,7 +554,7 @@ mod tests {
         memory.set_byte(0x0000, 0x86);
         cpu.x = 0xAA;
         cpu.execute(&mut memory);
-        
+
         assert_eq!(memory.get_byte(0x0000), 0xAA);
     }
 
@@ -566,7 +566,7 @@ mod tests {
         memory.set_byte(0x0000, 0x84);
         cpu.y = 0xFF;
         cpu.execute(&mut memory);
-        
+
         assert_eq!(memory.get_byte(0x0000), 0xFF);
     }
     #[test]

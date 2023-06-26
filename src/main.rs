@@ -292,6 +292,21 @@ mod tests {
     }
 
     #[test]
+    fn test_cpu_lda_absolutey() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x11;
+        memory.data[0] = 0xB9;
+        memory.data[1] = 0xAA;
+        memory.data[2] = 0xAA;
+        let offset = 0xAAAA + cpu.y as u16;
+        memory.set_byte(offset, 0x11);
+        
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(offset), 0x11);
+    }
+
+    #[test]
     fn test_fn_make_address() {
         let operand1: u8 = 0xAA;
         let operand2: u8 = 0xFF;

@@ -1,4 +1,4 @@
-use std::{
+ use std::{
     alloc::System,
     io::{stdin, stdout, BufRead, Write},
     ops::Add,
@@ -123,13 +123,8 @@ fn main() {
 
                     println!("{}", _mem.get_byte(hex));
                 }
-                // TODO: decrepate this
-                InterpreterInstr::GetBytes => {
-                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
-                    let hex = u16::from_str_radix(address, 16).unwrap();
-
-                    println!("{}", _mem.get_byte(hex));
-                }
+        
+                
                 InterpreterInstr::SetByte => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -140,19 +135,7 @@ fn main() {
                     _mem.set_byte(hex, byte);
                 }
 
-                // TODO: decrepate this
-                InterpreterInstr::SetBytes => {
-                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
-                    let hex = u16::from_str_radix(address, 16).unwrap();
-
-                    let values = expression.split_ascii_whitespace().nth(2).unwrap();
-                    let bytes: Vec<u8> = values
-                        .split(",")
-                        .map(|x| u8::from_str_radix(x, 16).unwrap())
-                        .collect();
-
-                    _mem.set_bytes(hex, &bytes);
-                }
+                
                 InterpreterInstr::Jump => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();

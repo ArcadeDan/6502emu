@@ -16,7 +16,7 @@ pub enum AddressingModes {
     AbsoluteX,
     AbsoluteY,
 }
-
+#[allow(dead_code)]
 pub enum Instruction {
     LDA,
     STA,

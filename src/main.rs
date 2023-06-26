@@ -277,7 +277,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_lda_absolutex() {
+    fn test_cpu_lda_absoluteX() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         cpu.x = 0x11;
@@ -292,7 +292,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_lda_absolutey() {
+    fn test_cpu_lda_absoluteY() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         cpu.y = 0x11;
@@ -315,9 +315,17 @@ mod tests {
         memory.data[1] = 0xFF;
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x32);
-
-
-
+    }
+    #[test]
+    fn test_cpu_lda_zeropageX() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.data[0] = 0xB5;
+        memory.data[1] = 0x20;
+        cpu.x = 0x11;
+        memory.set_byte(0x0020 + cpu.x as u16, 0x33);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x33);
     }
 
     #[test]

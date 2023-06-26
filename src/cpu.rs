@@ -312,6 +312,13 @@ impl CPU {
                 self.lda(data);
                 None
             }
+            // lda zpx
+            0xB5 => {
+                let data = m.get_byte(make_address(0x00, operand1) + self.x as u16);
+                self.lda(data);
+                self.mode = AddressingModes::ZeroPageX;
+                None
+            }
 
             // ldx
             0xA2 => {

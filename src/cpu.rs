@@ -1,7 +1,9 @@
-use std::{fs::File, io::{Write, Read}};
+use std::{
+    fs::File,
+    io::{Read, Write},
+};
 
-use crate::{MEMORY_RANGE, Byte, Word, STACK_HIGH};
-
+use crate::{Byte, Word, MEMORY_RANGE, STACK_HIGH};
 
 use crate::instruction::AddressingModes;
 
@@ -133,7 +135,6 @@ impl CPU {
         self.acc = data;
         self.status.n = true;
         self.status.z = true;
-        
     }
     // direct
     pub fn push(&mut self, memory: &mut MEMORY, data: Byte) {
@@ -243,7 +244,6 @@ impl CPU {
         self.status.z = true;
         self.x = data;
         self.prgmctr += 2;
-
     }
     // load y
     pub fn ldy(&mut self, data: u8) {
@@ -266,7 +266,6 @@ impl CPU {
     pub fn sta(&mut self, memory: &mut MEMORY) {
         memory.set_byte(self.prgmctr, self.acc);
     }
-    
 
     // executes and returms an option of the data depending on the instruction
     pub fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -378,7 +377,7 @@ impl CPU {
                 self.sty(m);
                 None
             }
-            
+
             0x85 => {
                 self.sta(m);
                 None
@@ -409,12 +408,9 @@ impl Default for MEMORY {
     }
 }
 
-
 pub fn xextend(x: u8) -> u16 {
     u16::from(x)
 }
-
-
 
 impl Default for AddressingModes {
     fn default() -> Self {

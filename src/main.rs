@@ -1,4 +1,4 @@
- use std::{
+use std::{
     alloc::System,
     io::{stdin, stdout, BufRead, Write},
     ops::Add,
@@ -123,8 +123,7 @@ fn main() {
 
                     println!("{}", _mem.get_byte(hex));
                 }
-        
-                
+
                 InterpreterInstr::SetByte => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -135,7 +134,6 @@ fn main() {
                     _mem.set_byte(hex, byte);
                 }
 
-                
                 InterpreterInstr::Jump => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -394,6 +392,7 @@ mod tests {
         assert_eq!(cpu.status.to_byte(), 0x81);
     }
 
+    // linux IO may cause this unit test to fail
     #[test]
     fn test_memory_save() {
         let mut memory = MEMORY::new();
@@ -419,6 +418,8 @@ mod tests {
 
         fs::remove_file("test.dump").unwrap();
     }
+
+    // linux IO may cause this unit test to fail
     #[test]
     fn test_memory_load() {
         let mut memory = MEMORY::new();

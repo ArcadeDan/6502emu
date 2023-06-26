@@ -283,11 +283,11 @@ impl CPU {
             }
             // lda absolute
             0xAD => {
-               let concat_byte = make_address(operand1, operand2);
-               let data = m.get_byte(concat_byte);
-               self.mode = AddressingModes::Absolute;
-               self.lda(data);
-               None
+                let concat_byte = make_address(operand1, operand2);
+                let data = m.get_byte(concat_byte);
+                self.mode = AddressingModes::Absolute;
+                self.lda(data);
+                None
             }
             // lda x indexed
             0xBD => {
@@ -302,6 +302,13 @@ impl CPU {
                 let concat_byte = make_address(operand1, operand2) + self.y as u16;
                 let data = m.get_byte(concat_byte);
                 self.mode = AddressingModes::AbsoluteY;
+                self.lda(data);
+                None
+            }
+            // lda zp
+            0xA5 => {
+                let data = m.get_byte(make_address(0x00, operand1));
+                self.mode = AddressingModes::ZeroPage;
                 self.lda(data);
                 None
             }

@@ -286,7 +286,7 @@ mod tests {
         memory.data[2] = 0xAA;
         let offset = 0xAAAA + cpu.x as u16;
         memory.set_byte(offset, 0x11);
-        
+
         cpu.execute(&mut memory);
         assert_eq!(memory.get_byte(offset), 0x11);
     }
@@ -301,9 +301,23 @@ mod tests {
         memory.data[2] = 0xAA;
         let offset = 0xAAAA + cpu.y as u16;
         memory.set_byte(offset, 0x11);
-        
+
         cpu.execute(&mut memory);
         assert_eq!(memory.get_byte(offset), 0x11);
+    }
+
+    #[test]
+    fn test_cpu_lda_zeropage() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x00FF, 0x32);
+        memory.data[0] = 0xA5;
+        memory.data[1] = 0xFF;
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x32);
+
+
+
     }
 
     #[test]
@@ -593,6 +607,7 @@ mod tests {
 
         assert_eq!(memory.get_byte(0x0000), 0xFF);
     }
+
     #[test]
     fn test_cpu_sta() {
         let mut memory = MEMORY::new();
@@ -602,4 +617,6 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(memory.get_byte(0x0000), 0x14);
     }
+
+
 }

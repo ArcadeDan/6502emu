@@ -327,6 +327,32 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x33);
     }
+    #[test]
+    fn test_cpu_lda_zeropage_indirect() {
+
+        // first add operand1 into accumulator.
+        // zp byte at operand1
+        // zp byte at operand2
+        // make address of zp bytes
+        // load byte at address into accumulator
+
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x00;
+        memory.data[0] = 0xA1;
+        memory.data[1] = 0x01;
+        cpu.x = cpu.x + memory.data[1];
+        memory.set_byte(0x0001, 0x11);
+        memory.set_byte(0x0002, 0x22);
+        memory.set_byte(0x1122, 0x33);
+        memory.data[2] = 0x02;
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(0x1122), 0x33);
+       
+       
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0xFF);
+    }
 
     #[test]
     fn test_fn_make_address() {

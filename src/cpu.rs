@@ -319,6 +319,16 @@ impl CPU {
                 self.mode = AddressingModes::ZeroPageX;
                 None
             }
+            // lda x zp indexed indirect
+            0xA1 => {
+                self.x = self.x + operand1;
+                let new_operand1 = m.get_byte(make_address(0x00, self.x));
+                let new_operand2 = m.get_byte(make_address(0x00, operand2));
+                let data = m.get_byte(make_address(new_operand1, new_operand2));
+                self.lda(data);
+                self.mode = AddressingModes::IndexedIndirectX;      
+                None
+            }
 
             // ldx
             0xA2 => {

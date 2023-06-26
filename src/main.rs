@@ -274,7 +274,21 @@ mod tests {
         memory.data[0xFFFF] = 0x11;
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x11);
+    }
+
+    #[test]
+    fn test_cpu_lda_absolutex() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x11;
+        memory.data[0] = 0xBD;
+        memory.data[1] = 0xAA;
+        memory.data[2] = 0xAA;
+        let offset = 0xAAAA + cpu.x as u16;
+        memory.set_byte(offset, 0x11);
         
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(offset), 0x11);
     }
 
     #[test]
@@ -533,7 +547,6 @@ mod tests {
     }
 
     // test the cpu so it resets the stack pointer
-
     #[test]
     fn test_cpu_brk() {
         let mut memory = MEMORY::new();

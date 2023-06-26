@@ -274,16 +274,36 @@ impl CPU {
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
             // lda block
+
+            // lda immediate
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
                 None
             }
+            // lda absolute
             0xAD => {
                let concat_byte = make_address(operand1, operand2);
                let data = m.get_byte(concat_byte);
+               self.mode = AddressingModes::Absolute;
                self.lda(data);
                None
+            }
+            // lda x indexed
+            0xBD => {
+                let concat_byte = make_address(operand1, operand2) + self.x as u16;
+                let data = m.get_byte(concat_byte);
+                self.mode = AddressingModes::AbsoluteX;
+                self.lda(data);
+                None
+            }
+            // lda y indexed
+            0xB9 => {
+                let concat_byte = make_address(operand1, operand2) + self.y as u16;
+                let data = m.get_byte(concat_byte);
+                self.mode = AddressingModes::AbsoluteY;
+                self.lda(data);
+                None
             }
 
             // ldx

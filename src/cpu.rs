@@ -1,20 +1,11 @@
-use std::{fs::File, io::{Write, Read}};
+use std::{
+    fs::File,
+    io::{Read, Write},
+};
 
-use crate::{MEMORY_RANGE, Byte, Word, STACK_HIGH};
+use crate::{Byte, Word, MEMORY_RANGE, STACK_HIGH};
 
-
-#[allow(dead_code)]
-pub enum AddressingModes {
-    Accumulator,
-    Immediate,
-    Implied,
-    Relative,
-    ZeroPage,
-    Indirect,
-    Absolute,
-}
-
-
+use crate::instruction::AddressingModes;
 
 #[derive(Debug)]
 pub struct MEMORY {
@@ -144,7 +135,6 @@ impl CPU {
         self.acc = data;
         self.status.n = true;
         self.status.z = true;
-        
     }
     // direct
     pub fn push(&mut self, memory: &mut MEMORY, data: Byte) {
@@ -254,7 +244,6 @@ impl CPU {
         self.status.z = true;
         self.x = data;
         self.prgmctr += 2;
-
     }
     // load y
     pub fn ldy(&mut self, data: u8) {
@@ -277,7 +266,6 @@ impl CPU {
     pub fn sta(&mut self, memory: &mut MEMORY) {
         memory.set_byte(self.prgmctr, self.acc);
     }
-    
 
     // executes and returms an option of the data depending on the instruction
     pub fn execute(&mut self, m: &mut MEMORY) -> Option<Byte> {
@@ -389,7 +377,7 @@ impl CPU {
                 self.sty(m);
                 None
             }
-            
+
             0x85 => {
                 self.sta(m);
                 None
@@ -420,47 +408,8 @@ impl Default for MEMORY {
     }
 }
 
-
 pub fn xextend(x: u8) -> u16 {
     u16::from(x)
-}
-
-#[allow(dead_code)]
-enum Instruction {
-    ADC, // add w/ carry
-    AND, // logical AND
-    ASL, // arithmetic shift left
-    BIT, // bit test
-    BRK, // break
-    CMP, // compare
-    CPY, // compare Y register
-    CPX, // compare x register
-    DEC, // decrement memory
-    EOR, // exclusive or
-    CLC, // clear carry flag
-    SEC, // set carry flag
-    CLI, // clear interrupt disable
-    SEI, // set interrupt disable
-    CLV, // clear overflow flag
-    CLD, // clear decimal mode
-    SED, // set decimal flag
-    INC, // increment
-    JMP, // jump
-    JSR, // jump to subroutine
-    LDA, // load accumulator
-    LDX, // load x register
-    LDY, // load y register
-    LSR, // logical shift right
-    NOP, // no operation
-    ORA, // inclusive or
-    TAX, // transfer accumulator to x
-    TXA, // transfer x to accumulator
-    DEX, // decrement X register
-    INX, // increment x register
-    TAY, // transfer accumulator to y
-    DEY, // decrement y register
-    INY, // increment y register
-    ROL, // rotate left
 }
 
 impl Default for AddressingModes {

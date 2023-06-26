@@ -1,10 +1,11 @@
 use std::{
+    alloc::System,
     io::{stdin, stdout, BufRead, Write},
     ops::Add,
     process::exit,
 };
 
-use crate::cpu::{CPU, MEMORY, save_memory, load_memory, xextend, make_address, split_address};
+use crate::cpu::{load_memory, make_address, save_memory, split_address, xextend, CPU, MEMORY};
 
 use logos::Logos;
 use std::fs;
@@ -15,6 +16,7 @@ type Byte = u8;
 type Word = u16;
 
 mod cpu;
+mod instruction;
 
 const ADDRESS_LOW: u16 = 0x0000;
 const ADDRESS_HIGH: u16 = 0xFFFF;
@@ -90,6 +92,7 @@ fn main() {
         for instr in instructions.iter() {
             match instr.0 {
                 InterpreterInstr::Registers => {
+                    print!("\x1B[2J");
                     println!("acc: {:?}", _cpu.acc);
                     println!("x: {:?}", _cpu.x);
                     println!("y: {:?}", _cpu.y);
@@ -101,6 +104,7 @@ fn main() {
                     _mem.reset();
                 }
                 InterpreterInstr::Status => {
+                    print!("\x1B[2J");
                     println!("v: {:?}", _cpu.status.v);
                     println!("n: {:?}", _cpu.status.n);
                     println!("c: {:?}", _cpu.status.c);
@@ -119,13 +123,7 @@ fn main() {
 
                     println!("{}", _mem.get_byte(hex));
                 }
-                // TODO: decrepate this
-                InterpreterInstr::GetBytes => {
-                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
-                    let hex = u16::from_str_radix(address, 16).unwrap();
 
-                    println!("{}", _mem.get_byte(hex));
-                }
                 InterpreterInstr::SetByte => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -136,19 +134,6 @@ fn main() {
                     _mem.set_byte(hex, byte);
                 }
 
-                // TODO: decrepate this
-                InterpreterInstr::SetBytes => {
-                    let address = expression.split_ascii_whitespace().nth(1).unwrap();
-                    let hex = u16::from_str_radix(address, 16).unwrap();
-
-                    let values = expression.split_ascii_whitespace().nth(2).unwrap();
-                    let bytes: Vec<u8> = values
-                        .split(",")
-                        .map(|x| u8::from_str_radix(x, 16).unwrap())
-                        .collect();
-
-                    _mem.set_bytes(hex, &bytes);
-                }
                 InterpreterInstr::Jump => {
                     let address = expression.split_ascii_whitespace().nth(1).unwrap();
                     let hex = u16::from_str_radix(address, 16).unwrap();
@@ -178,7 +163,10 @@ fn main() {
                     save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
-                    load_memory(&mut _mem, "memory.dump");
+                    let mut name = String::new();
+                    println!("please input the file in the root directory:");
+                    std::io::stdin().read_line(&mut name);
+                    load_memory(&mut _mem, &name);
                 }
                 _ => {}
             }
@@ -404,6 +392,7 @@ mod tests {
         assert_eq!(cpu.status.to_byte(), 0x81);
     }
 
+    // linux IO may cause this unit test to fail
     #[test]
     fn test_memory_save() {
         let mut memory = MEMORY::new();
@@ -429,6 +418,8 @@ mod tests {
 
         fs::remove_file("test.dump").unwrap();
     }
+
+    // linux IO may cause this unit test to fail
     #[test]
     fn test_memory_load() {
         let mut memory = MEMORY::new();
@@ -528,10 +519,8 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.y, 0x54);
     }
-    
-    // test the cpu so it resets the stack pointer
-    
 
+    // test the cpu so it resets the stack pointer
 
     #[test]
     fn test_cpu_brk() {
@@ -549,7 +538,7 @@ mod tests {
         memory.set_byte(0x0000, 0x86);
         cpu.x = 0xAA;
         cpu.execute(&mut memory);
-        
+
         assert_eq!(memory.get_byte(0x0000), 0xAA);
     }
 
@@ -561,7 +550,7 @@ mod tests {
         memory.set_byte(0x0000, 0x84);
         cpu.y = 0xFF;
         cpu.execute(&mut memory);
-        
+
         assert_eq!(memory.get_byte(0x0000), 0xFF);
     }
     #[test]

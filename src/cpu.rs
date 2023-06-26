@@ -273,12 +273,19 @@ impl CPU {
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-            // lda
+            // lda block
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
                 None
             }
+            0xAD => {
+               let concat_byte = make_address(operand1, operand2);
+               let data = m.get_byte(concat_byte);
+               self.lda(data);
+               None
+            }
+
             // ldx
             0xA2 => {
                 self.ldx(operand1);

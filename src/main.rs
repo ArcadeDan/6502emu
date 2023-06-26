@@ -256,13 +256,25 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_lda() {
+    fn test_cpu_lda_immediate() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
         memory.data[1] = 0x11;
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x11);
+    }
+    #[test]
+    fn test_cpu_lda_absolute() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.data[0] = 0xAD;
+        memory.data[1] = 0xFF;
+        memory.data[2] = 0xFF;
+        memory.data[0xFFFF] = 0x11;
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x11);
+        
     }
 
     #[test]

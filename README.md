@@ -4,7 +4,7 @@
 # Motivations
 Hello, I am among a group that really appreciates the mos6502. Super Mario Brothers was the architecture that it was written in.
 The programming that got us to the moon in 1969 was written on a 6502 architecture. In short, the merits are there. I believe it also
-to be a simple enough architecture to learn. I intend for this to be a project I can learn from.
+to be a simple enough architecture to learn.
 
 
 # REPL Commands

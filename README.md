@@ -1,5 +1,11 @@
-# 6502 Emulator
+# A MOS6502 Emulator written in Rust
 ![mos 6502](https://upload.wikimedia.org/wikipedia/commons/4/49/MOS_6502AD_4585_top.jpg)
+
+# Motivations
+Hello, I am among a group that really appreciates the mos6502. Super Mario Brothers was the architecture that it was written in.
+The programming that got us to the moon in 1969 was written on a 6502 architecture. In short, the merits are there. I believe it also
+to be a simple enough architecture to learn. I intend for this to be a project I can learn from.
+
 
 # REPL Commands
 
@@ -22,15 +28,6 @@
 		example: "execute"
 			executes instruction at programcounter address
 	
-
-# Instructions so far
-
-    LDA : 0xA9
-    JMP : 0x4C
-    PHA : 0x48
-    PLA : 0x68
-    TXS : 0x9A
-    TSX : 0xBA
 
 
 # References

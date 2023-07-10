@@ -92,7 +92,7 @@ fn main() {
         for instr in instructions.iter() {
             match instr.0 {
                 InterpreterInstr::Registers => {
-                    print!("\x1B[2J");
+                    print!("\x1B[2J\n");
                     println!("acc: {:?}", _cpu.acc);
                     println!("x: {:?}", _cpu.x);
                     println!("y: {:?}", _cpu.y);
@@ -163,10 +163,8 @@ fn main() {
                     save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
-                    let mut name = String::new();
-                    println!("please input the file in the root directory:");
-                    std::io::stdin().read_line(&mut name);
-                    load_memory(&mut _mem, &name);
+                    
+                    load_memory(&mut _mem, "memory.dump");
                 }
                 _ => {}
             }
@@ -327,9 +325,11 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x33);
     }
+
+    
+
     #[test]
     fn test_cpu_lda_zeropage_indirect() {
-
         // first add operand1 into accumulator.
         // zp byte at operand1
         // zp byte at operand2
@@ -348,11 +348,12 @@ mod tests {
         memory.data[2] = 0x02;
         cpu.execute(&mut memory);
         assert_eq!(memory.get_byte(0x1122), 0x33);
-       
-       
+
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0xFF);
     }
+
+    
 
     #[test]
     fn test_fn_make_address() {
@@ -651,6 +652,4 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(memory.get_byte(0x0000), 0x14);
     }
-
-
 }

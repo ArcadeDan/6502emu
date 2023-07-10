@@ -23,20 +23,13 @@ impl MEMORY {
             *byte = 0x00;
         }
     }
-    ///returns byte from 16bit address range
+    // returns byte from 16bit address range
     pub fn get_byte(&self, address: Word) -> Byte {
         self.data[address as usize]
     }
     // sets byte at 16bit address range
     pub fn set_byte(&mut self, address: Word, value: Byte) {
         self.data[address as usize] = value;
-    }
-
-    // soon to be deprecated
-    pub fn set_bytes(&mut self, start: Word, values: &[Byte]) {
-        let start = start as usize;
-        let end = start + values.len();
-        self.data[start..end].copy_from_slice(values);
     }
 }
 
@@ -273,8 +266,7 @@ impl CPU {
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-            // lda block
-
+        // lda block
             // lda immediate
             0xA9 => {
                 self.lda(operand1);
@@ -326,10 +318,10 @@ impl CPU {
                 let new_operand2 = m.get_byte(make_address(0x00, operand2));
                 let data = m.get_byte(make_address(new_operand1, new_operand2));
                 self.lda(data);
-                self.mode = AddressingModes::IndexedIndirectX;      
-                None
+                self.mode = AddressingModes::IndexedIndirectX;
+                    None
             }
-
+            
             // ldx
             0xA2 => {
                 self.ldx(operand1);
@@ -492,3 +484,5 @@ pub fn load_memory(mem: &mut MEMORY, file: &str) {
     let mut file = File::open(file).unwrap();
     file.read_exact(&mut mem.data).unwrap();
 }
+
+

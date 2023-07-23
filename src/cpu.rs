@@ -319,7 +319,7 @@ impl CPU {
                 let data = m.get_byte(make_address(new_operand1, new_operand2));
                 self.lda(data);
                 self.mode = AddressingModes::IndexedIndirectX;
-                    None
+                None
             }
             
             // ldx

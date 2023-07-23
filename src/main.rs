@@ -42,6 +42,17 @@ enum InterpreterInstr {
     Dump,
     #[token("load")]
     Load,
+    #[token("x")]
+    X,
+    #[token("y")]
+    Y,
+    #[token("acc")]
+    Acc,
+    #[token("stkptr")]
+    Stkptr,
+    #[token("prgmctr")]
+    Prgmctr,
+
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -99,6 +110,36 @@ fn main() {
                     println!("stkptr: {:?}", _cpu.stkptr);
                     println!("prgmctr: {:?}", _cpu.prgmctr);
                 }
+                InterpreterInstr::X => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.x = byte;
+                }
+
+                InterpreterInstr::Y => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.y = byte;
+                }
+
+                InterpreterInstr::Acc => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.acc = byte;
+                }
+
+                InterpreterInstr::Stkptr => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let word = u16::from_str_radix(value, 16).unwrap();
+                    _cpu.stkptr = word;
+                }
+
+                InterpreterInstr::Prgmctr => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let word = u16::from_str_radix(value, 16).unwrap();
+                    _cpu.prgmctr = word;
+                }
+
                 InterpreterInstr::Reset => {
                     _cpu.reset();
                     _mem.reset();
@@ -163,7 +204,6 @@ fn main() {
                     save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
-                    
                     load_memory(&mut _mem, "memory.dump");
                 }
                 _ => {}
@@ -338,19 +378,21 @@ mod tests {
 
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
-        cpu.x = 0x00;
-        memory.data[0] = 0xA1;
-        memory.data[1] = 0x01;
-        cpu.x = cpu.x + memory.data[1];
-        memory.set_byte(0x0001, 0x11);
-        memory.set_byte(0x0002, 0x22);
-        memory.set_byte(0x1122, 0x33);
-        memory.data[2] = 0x02;
+        memory.set_byte(0x0000, 0xA1); // lda (zp, x)
+        memory.set_byte(0x0001, 0x42); // operand1
+        memory.set_byte(0x0042, 0x81); // operand1 byte
+        memory.set_byte(0x0002, 0x16); // operand2
+        memory.set_byte(0x0016, 0x08); // operand2 byte
+        memory.set_byte(0x8108, 0x55);
         cpu.execute(&mut memory);
-        assert_eq!(memory.get_byte(0x1122), 0x33);
+        assert_eq!(cpu.acc, 0x55);
+
+     
+
+        
 
         cpu.execute(&mut memory);
-        assert_eq!(cpu.acc, 0xFF);
+        
     }
 
     

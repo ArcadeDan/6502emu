@@ -322,6 +322,16 @@ impl CPU {
                 None
             }
             
+            // lda y zp indirect indexed
+            0xB1 => {
+                self.y = self.y + operand1;
+                let new_operand1 = m.get_byte(make_address(0x00, operand1));
+                let new_operand2 = m.get_byte(make_address(0x00, operand2));
+                let data = m.get_byte(make_address(new_operand1, new_operand2));
+                self.lda(data);
+                self.mode = AddressingModes::IndirectIndexedY;
+                None
+            }
             // ldx
             0xA2 => {
                 self.ldx(operand1);

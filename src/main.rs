@@ -209,6 +209,7 @@ fn main() {
                 _ => {}
             }
         }
+
     }
 }
 
@@ -369,7 +370,7 @@ mod tests {
     
 
     #[test]
-    fn test_cpu_lda_zeropage_indirect() {
+    fn test_cpu_lda_zeropage_indirectX() {
         // first add operand1 into accumulator.
         // zp byte at operand1
         // zp byte at operand2
@@ -386,15 +387,25 @@ mod tests {
         memory.set_byte(0x8108, 0x55);
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x55);
+        cpu.execute(&mut memory);
+    }
+    
+    #[test]
+    fn test_cpu_lda_zeropageY() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
 
-     
-
-        
+        memory.set_byte(0x0000, 0xB1); // lda (zp, x)
+        memory.set_byte(0x0001, 0x42); // operand1
+        memory.set_byte(0x0042, 0x81); // operand1 byte
+        memory.set_byte(0x0002, 0x16); // operand2
+        memory.set_byte(0x0016, 0x08); // operand2 byte
+        memory.set_byte(0x8108, 0x55);
 
         cpu.execute(&mut memory);
-        
+        assert_eq!(cpu.acc, 0x55);
+        cpu.execute(&mut memory);
     }
-
     
 
     #[test]

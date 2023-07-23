@@ -42,6 +42,17 @@ enum InterpreterInstr {
     Dump,
     #[token("load")]
     Load,
+    #[token("x")]
+    X,
+    #[token("y")]
+    Y,
+    #[token("acc")]
+    Acc,
+    #[token("stkptr")]
+    Stkptr,
+    #[token("prgmctr")]
+    Prgmctr,
+
     // data
     #[regex(r"(0x+[A-Z \d])\w+")]
     HexValue,
@@ -92,13 +103,43 @@ fn main() {
         for instr in instructions.iter() {
             match instr.0 {
                 InterpreterInstr::Registers => {
-                    print!("\x1B[2J");
+                    print!("\x1B[2J\n");
                     println!("acc: {:?}", _cpu.acc);
                     println!("x: {:?}", _cpu.x);
                     println!("y: {:?}", _cpu.y);
                     println!("stkptr: {:?}", _cpu.stkptr);
                     println!("prgmctr: {:?}", _cpu.prgmctr);
                 }
+                InterpreterInstr::X => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.x = byte;
+                }
+
+                InterpreterInstr::Y => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.y = byte;
+                }
+
+                InterpreterInstr::Acc => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let byte = u8::from_str_radix(value, 16).unwrap();
+                    _cpu.acc = byte;
+                }
+
+                InterpreterInstr::Stkptr => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let word = u16::from_str_radix(value, 16).unwrap();
+                    _cpu.stkptr = word;
+                }
+
+                InterpreterInstr::Prgmctr => {
+                    let value = expression.split_ascii_whitespace().nth(1).unwrap();
+                    let word = u16::from_str_radix(value, 16).unwrap();
+                    _cpu.prgmctr = word;
+                }
+
                 InterpreterInstr::Reset => {
                     _cpu.reset();
                     _mem.reset();
@@ -163,14 +204,12 @@ fn main() {
                     save_memory(&_mem, "memory.dump");
                 }
                 InterpreterInstr::Load => {
-                    let mut name = String::new();
-                    println!("please input the file in the root directory:");
-                    std::io::stdin().read_line(&mut name);
-                    load_memory(&mut _mem, &name);
+                    load_memory(&mut _mem, "memory.dump");
                 }
                 _ => {}
             }
         }
+
     }
 }
 
@@ -256,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_lda() {
+    fn test_cpu_lda_immediate() {
         let mut memory = MEMORY::new();
         let mut cpu = CPU::new();
         memory.data[0] = 0xA9;
@@ -264,6 +303,110 @@ mod tests {
         cpu.execute(&mut memory);
         assert_eq!(cpu.acc, 0x11);
     }
+    #[test]
+    fn test_cpu_lda_absolute() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.data[0] = 0xAD;
+        memory.data[1] = 0xFF;
+        memory.data[2] = 0xFF;
+        memory.data[0xFFFF] = 0x11;
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x11);
+    }
+
+    #[test]
+    fn test_cpu_lda_absoluteX() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.x = 0x11;
+        memory.data[0] = 0xBD;
+        memory.data[1] = 0xAA;
+        memory.data[2] = 0xAA;
+        let offset = 0xAAAA + cpu.x as u16;
+        memory.set_byte(offset, 0x11);
+
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(offset), 0x11);
+    }
+
+    #[test]
+    fn test_cpu_lda_absoluteY() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        cpu.y = 0x11;
+        memory.data[0] = 0xB9;
+        memory.data[1] = 0xAA;
+        memory.data[2] = 0xAA;
+        let offset = 0xAAAA + cpu.y as u16;
+        memory.set_byte(offset, 0x11);
+
+        cpu.execute(&mut memory);
+        assert_eq!(memory.get_byte(offset), 0x11);
+    }
+
+    #[test]
+    fn test_cpu_lda_zeropage() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x00FF, 0x32);
+        memory.data[0] = 0xA5;
+        memory.data[1] = 0xFF;
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x32);
+    }
+    #[test]
+    fn test_cpu_lda_zeropageX() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.data[0] = 0xB5;
+        memory.data[1] = 0x20;
+        cpu.x = 0x11;
+        memory.set_byte(0x0020 + cpu.x as u16, 0x33);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x33);
+    }
+
+    
+
+    #[test]
+    fn test_cpu_lda_zeropage_indirectX() {
+        // first add operand1 into accumulator.
+        // zp byte at operand1
+        // zp byte at operand2
+        // make address of zp bytes
+        // load byte at address into accumulator
+
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+        memory.set_byte(0x0000, 0xA1); // lda (zp, x)
+        memory.set_byte(0x0001, 0x42); // operand1
+        memory.set_byte(0x0042, 0x81); // operand1 byte
+        memory.set_byte(0x0002, 0x16); // operand2
+        memory.set_byte(0x0016, 0x08); // operand2 byte
+        memory.set_byte(0x8108, 0x55);
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x55);
+        cpu.execute(&mut memory);
+    }
+    
+    #[test]
+    fn test_cpu_lda_zeropageY() {
+        let mut memory = MEMORY::new();
+        let mut cpu = CPU::new();
+
+        memory.set_byte(0x0000, 0xB1); // lda (zp, x)
+        memory.set_byte(0x0001, 0x42); // operand1
+        memory.set_byte(0x0042, 0x81); // operand1 byte
+        memory.set_byte(0x0002, 0x16); // operand2
+        memory.set_byte(0x0016, 0x08); // operand2 byte
+        memory.set_byte(0x8108, 0x55);
+
+        cpu.execute(&mut memory);
+        assert_eq!(cpu.acc, 0x55);
+        cpu.execute(&mut memory);
+    }
+    
 
     #[test]
     fn test_fn_make_address() {
@@ -521,7 +664,6 @@ mod tests {
     }
 
     // test the cpu so it resets the stack pointer
-
     #[test]
     fn test_cpu_brk() {
         let mut memory = MEMORY::new();
@@ -553,6 +695,7 @@ mod tests {
 
         assert_eq!(memory.get_byte(0x0000), 0xFF);
     }
+
     #[test]
     fn test_cpu_sta() {
         let mut memory = MEMORY::new();

@@ -23,20 +23,13 @@ impl MEMORY {
             *byte = 0x00;
         }
     }
-    ///returns byte from 16bit address range
+    // returns byte from 16bit address range
     pub fn get_byte(&self, address: Word) -> Byte {
         self.data[address as usize]
     }
     // sets byte at 16bit address range
     pub fn set_byte(&mut self, address: Word, value: Byte) {
         self.data[address as usize] = value;
-    }
-
-    // soon to be deprecated
-    pub fn set_bytes(&mut self, start: Word, values: &[Byte]) {
-        let start = start as usize;
-        let end = start + values.len();
-        self.data[start..end].copy_from_slice(values);
     }
 }
 
@@ -273,10 +266,70 @@ impl CPU {
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-            // lda
+        // lda block
+            // lda immediate
             0xA9 => {
                 self.lda(operand1);
                 self.mode = AddressingModes::Accumulator;
+                None
+            }
+            // lda absolute
+            0xAD => {
+                let concat_byte = make_address(operand1, operand2);
+                let data = m.get_byte(concat_byte);
+                self.mode = AddressingModes::Absolute;
+                self.lda(data);
+                None
+            }
+            // lda x indexed
+            0xBD => {
+                let concat_byte = make_address(operand1, operand2) + self.x as u16;
+                let data = m.get_byte(concat_byte);
+                self.mode = AddressingModes::AbsoluteX;
+                self.lda(data);
+                None
+            }
+            // lda y indexed
+            0xB9 => {
+                let concat_byte = make_address(operand1, operand2) + self.y as u16;
+                let data = m.get_byte(concat_byte);
+                self.mode = AddressingModes::AbsoluteY;
+                self.lda(data);
+                None
+            }
+            // lda zp
+            0xA5 => {
+                let data = m.get_byte(make_address(0x00, operand1));
+                self.mode = AddressingModes::ZeroPage;
+                self.lda(data);
+                None
+            }
+            // lda zpx
+            0xB5 => {
+                let data = m.get_byte(make_address(0x00, operand1) + self.x as u16);
+                self.lda(data);
+                self.mode = AddressingModes::ZeroPageX;
+                None
+            }
+            // lda x zp indexed indirect
+            0xA1 => {
+                self.x = self.x + operand1;
+                let new_operand1 = m.get_byte(make_address(0x00, self.x));
+                let new_operand2 = m.get_byte(make_address(0x00, operand2));
+                let data = m.get_byte(make_address(new_operand1, new_operand2));
+                self.lda(data);
+                self.mode = AddressingModes::IndexedIndirectX;
+                None
+            }
+            
+            // lda y zp indirect indexed
+            0xB1 => {
+                self.y = self.y + operand1;
+                let new_operand1 = m.get_byte(make_address(0x00, operand1));
+                let new_operand2 = m.get_byte(make_address(0x00, operand2));
+                let data = m.get_byte(make_address(new_operand1, new_operand2));
+                self.lda(data);
+                self.mode = AddressingModes::IndirectIndexedY;
                 None
             }
             // ldx
@@ -441,3 +494,5 @@ pub fn load_memory(mem: &mut MEMORY, file: &str) {
     let mut file = File::open(file).unwrap();
     file.read_exact(&mut mem.data).unwrap();
 }
+
+

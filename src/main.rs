@@ -141,7 +141,7 @@ fn main() {
                 }
 
                 InterpreterInstr::Reset => {
-                    _cpu.reset();
+                    _cpu.reset(); //
                     _mem.reset();
                 }
                 InterpreterInstr::Status => {
@@ -337,7 +337,7 @@ mod tests {
         cpu.y = 0x11;
         memory.data[0] = 0xB9;
         memory.data[1] = 0xAA;
-        memory.data[2] = 0xAA;
+        memory.data[2] = 0xAA; //
         let offset = 0xAAAA + cpu.y as u16;
         memory.set_byte(offset, 0x11);
 

@@ -5,8 +5,6 @@ use std::{
 
 use crate::{Byte, Word, MEMORY_RANGE, STACK_HIGH};
 
-use crate::instruction::AddressingModes;
-
 #[derive(Debug)]
 pub struct MEMORY {
     pub data: [Byte; MEMORY_RANGE],
@@ -87,7 +85,6 @@ pub struct CPU {
     pub prgmctr: Word,
 
     pub status: Status,
-    pub mode: AddressingModes,
 }
 
 #[allow(dead_code)]
@@ -102,7 +99,6 @@ impl CPU {
             stkptr: STACK_HIGH,
             prgmctr: Word::default(),
             status: Status::default(),
-            mode: AddressingModes::default(),
         }
     }
 
@@ -266,18 +262,18 @@ impl CPU {
         let operand1 = m.get_byte(self.prgmctr + 1);
         let operand2 = m.get_byte(self.prgmctr + 2);
         match instruction {
-        // lda block
+            // lda block
             // lda immediate
             0xA9 => {
                 self.lda(operand1);
-                self.mode = AddressingModes::Accumulator;
+
                 None
             }
             // lda absolute
             0xAD => {
                 let concat_byte = make_address(operand1, operand2);
                 let data = m.get_byte(concat_byte);
-                self.mode = AddressingModes::Absolute;
+
                 self.lda(data);
                 None
             }
@@ -285,7 +281,7 @@ impl CPU {
             0xBD => {
                 let concat_byte = make_address(operand1, operand2) + self.x as u16;
                 let data = m.get_byte(concat_byte);
-                self.mode = AddressingModes::AbsoluteX;
+
                 self.lda(data);
                 None
             }
@@ -293,22 +289,21 @@ impl CPU {
             0xB9 => {
                 let concat_byte = make_address(operand1, operand2) + self.y as u16;
                 let data = m.get_byte(concat_byte);
-                self.mode = AddressingModes::AbsoluteY;
+
                 self.lda(data);
                 None
             }
             // lda zp
             0xA5 => {
                 let data = m.get_byte(make_address(0x00, operand1));
-                self.mode = AddressingModes::ZeroPage;
+
                 self.lda(data);
                 None
             }
             // lda zpx
             0xB5 => {
                 let data = m.get_byte(make_address(0x00, operand1) + self.x as u16);
-                self.lda(data);
-                self.mode = AddressingModes::ZeroPageX;
+
                 None
             }
             // lda x zp indexed indirect
@@ -318,10 +313,10 @@ impl CPU {
                 let new_operand2 = m.get_byte(make_address(0x00, operand2));
                 let data = m.get_byte(make_address(new_operand1, new_operand2));
                 self.lda(data);
-                self.mode = AddressingModes::IndexedIndirectX;
+
                 None
             }
-            
+
             // lda y zp indirect indexed
             0xB1 => {
                 self.y = self.y + operand1;
@@ -329,25 +324,24 @@ impl CPU {
                 let new_operand2 = m.get_byte(make_address(0x00, operand2));
                 let data = m.get_byte(make_address(new_operand1, new_operand2));
                 self.lda(data);
-                self.mode = AddressingModes::IndirectIndexedY;
+
                 None
             }
             // ldx
             0xA2 => {
                 self.ldx(operand1);
-                self.mode = AddressingModes::Immediate;
                 None
             }
             // ldy
             0xA0 => {
                 self.ldy(operand1);
-                self.mode = AddressingModes::Immediate;
+
                 None
             }
             // jump
             0x4C => {
                 self.jmp(make_address(operand1, operand2));
-                self.mode = AddressingModes::Absolute;
+
                 None
             }
             // pha
@@ -465,12 +459,6 @@ pub fn xextend(x: u8) -> u16 {
     u16::from(x)
 }
 
-impl Default for AddressingModes {
-    fn default() -> Self {
-        AddressingModes::Accumulator
-    }
-}
-
 pub fn make_address(o1: Byte, o2: Byte) -> Word {
     let address: Word = ((o1 as Word) << 8) | o2 as Word;
     address
@@ -494,5 +482,3 @@ pub fn load_memory(mem: &mut MEMORY, file: &str) {
     let mut file = File::open(file).unwrap();
     file.read_exact(&mut mem.data).unwrap();
 }
-
-

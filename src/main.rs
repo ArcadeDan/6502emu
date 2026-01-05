@@ -16,7 +16,7 @@ type Byte = u8;
 type Word = u16;
 
 mod cpu;
-mod instruction;
+
 
 const ADDRESS_LOW: u16 = 0x0000;
 const ADDRESS_HIGH: u16 = 0xFFFF;
